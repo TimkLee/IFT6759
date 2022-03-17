@@ -1,6 +1,20 @@
 ---
-test: cifar
-num: 1
-name: "CC"
+data: "cifar10"
+model: "all_cnn"
+augment: 
+    - "cutout"
+    - "mixup"
+
+aug_strength:
+    - 0.5
+    - 0.5
+eval:
+    "Acc"
+       
+learning_rate: 0.1
+epoch: 100
+optimizer: "adam"
+momentum: 0.5
+weight_decay: 0.001
 
 
