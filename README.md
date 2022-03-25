@@ -33,5 +33,30 @@ The `Evaluation` folder contains code for evaluating the model performance. The 
 
 
 
+To run `main.py, e.g. python main.py -c Example.yaml -d cpu
 
 
+#`Data` Code
+`Data_Load` Function Usage
+Args:
+	- task [str]: learning task of interest; default: "super" 
+	- batch_size [int]: size of the data batch; default: "256" 
+	- seed [int]: seed for randomization; default: "6759" 
+Returns: 
+	- labelledloader [torch.utils.data.DataLoader]: data loader for the training data with label
+	- unlabelledloader [torch.utils.data.DataLoader]: data loader for the training data without label, for supervised learning, this is equal to `labelledloader`
+	- validloader [torch.utils.data.DataLoader]: data loader for the validation data
+	- testloader [torch.utils.data.DataLoader]: data loader for the test data   
+	
+    
+   
+   
+   
+   
+
+	
+	
+	
+	
+	
+	

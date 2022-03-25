@@ -1,4 +1,7 @@
 ---
+# "super" - supervised learning, "semi" - semi supervised learning, "shot" - few shot learning
+task: "super"
+
 data: "cifar10"
 model: "all_cnn"
 augment: 
@@ -11,10 +14,11 @@ aug_strength:
 eval:
     "Acc"
        
+batch_size: 256
 learning_rate: 0.1
 epoch: 100
 optimizer: "adam"
 momentum: 0.5
 weight_decay: 0.001
-
+seed: 6759
 

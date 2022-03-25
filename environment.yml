@@ -11,7 +11,9 @@ dependencies:
   - plotly
   - jupyterlab>=3.0.0
   - tqdm
+  - ipywidgets
   - pip:
     - torch
     - torchvision
     - pyyaml
+

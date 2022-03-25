@@ -6,9 +6,12 @@ import argparse
 import logging
 import os
 import torch
-import warnings
 import yaml
+import numpy as np
+import pickle
+import logging
 
+logging.basicConfig(level=logging.INFO)
 
 def main(args):
     
@@ -17,21 +20,27 @@ def main(args):
         config = yaml.load(f, Loader=yaml.FullLoader)
     
     device = args.device
+    task = config["task"]
     data_file = config["data"]
     model_file = config["model"]
     augment_file = config["augment"]
     augment_strength = config["aug_strength"]
     eval_file = config["eval"]
+    batch_size = config["batch_size"]
     learn_rate = config["learning_rate"]
     epoch = config["epoch"]
     optimizer = config["optimizer"]
     momentum = config["momentum"]
     weight_decay = config["weight_decay"]
+    seed = config["seed"]
     
     data_file_path = f"Data.{data_file}"
     _temp = __import__(name=data_file_path, fromlist=['Data_Load'])
     Data_Load = _temp.Data_Load
-    Data_Load()
+    labelledloader, unlabelledloader, validloader, testloader = Data_Load(task = task, batch_size = batch_size, seed = seed)
+    logging.info("Dataloader ready")
+    
+    
     
     Aug = []
     for i in range(len(augment_file)):
@@ -69,7 +78,7 @@ if __name__ == "__main__":
         type = str,
         dest="config_file",
         help="(string) name of the configuration file located in ./Config",
-        default = "Test.yaml"
+        default = "Example.yaml"
     )
     
     parser.add_argument(
@@ -87,7 +96,7 @@ if __name__ == "__main__":
     
     # Check for the device
     if (args.device == "cuda") and not torch.cuda.is_available():
-        warnings.warn(
+        logging.warning(
             "CUDA is not available, make that your environment is "
             "running on GPU (e.g. in the Notebook Settings in Google Colab). "
             'Forcing device="cpu".'
@@ -95,7 +104,7 @@ if __name__ == "__main__":
         args.device = "cpu"
 
     else:
-        warnings.warn(
+        logging.warning(
             "You are about to run on CPU, and might run out of memory "
             "shortly. You can try setting batch_size=1 to reduce memory usage."
         )
