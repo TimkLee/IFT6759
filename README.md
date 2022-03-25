@@ -31,7 +31,7 @@ The `Evaluation` folder contains code for evaluating the model performance. The 
 `main.py` --uses--> function `Train` --in--> `Model` code
 `main.py` --uses--> function `Eval` --in--> `Evaluation` code
 
-
+All images will be in [Batch size, Channel, Height, Width] format.
 
 To run `main.py, e.g. python main.py -c Example.yaml -d cpu
 
@@ -48,10 +48,15 @@ Returns:
 	- validloader [torch.utils.data.DataLoader]: data loader for the validation data
 	- testloader [torch.utils.data.DataLoader]: data loader for the test data   
 	
-    
+#`Augmentation` Code    
+`Aug` Function Usage   
    
-   
-   
+Args:
+	- data [Tensor]: input images with a size of [Batch size, Channel, Height, Width]
+	- seed [int]: seed for randomization; default: "6759" 
+
+Returns:
+	- aug_data [Tensor]: output images with a size of [4*Batch size, Channel, Height, Width], where the first [Batch size, Channel, Height, Width] is the original data   
    
 
 	

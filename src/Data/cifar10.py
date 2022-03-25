@@ -1,5 +1,6 @@
 """ 
 Download the Cifar10 data and create the train, validation, test split based on the task of interest.
+Note that the returned image dimension is in [Batch size, Channel, Height, Width].
 
     Args:
         task [str]: learning task of interest; default: "super" 
