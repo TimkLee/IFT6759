@@ -3,7 +3,7 @@
 task: "super"
 
 data: "cifar10"
-model: "all_cnn"
+model: "resnet"
 augment: 
     - "Flip"
 

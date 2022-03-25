@@ -12,6 +12,7 @@ dependencies:
   - jupyterlab>=3.0.0
   - tqdm
   - ipywidgets
+  - h5py
   - pip:
     - torch
     - torchvision
