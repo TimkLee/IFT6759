@@ -20,6 +20,6 @@ def Aug(data,seed = 6759):
     aug_data = data
     
     for i in range(3):        
-            aug_data = torch.cat((aug_data,F.affine(data,translate=[0,0],angle=torch.randint(-180, 180,(1,)),scale=1,shear=0)))
+            aug_data = torch.cat((aug_data,F.affine(data,translate=[0,0],angle=torch.randint(-180, 180,(1,)).item(),scale=1,shear=0)))
 
     return aug_data
