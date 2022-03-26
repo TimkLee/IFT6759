@@ -69,13 +69,6 @@ Returns:
 Class `ModelClass` contians
 def __init__
 def forward - forward pass
-def train - train loop for supervised and unsupervised
-def shottrain - train loop for few-shot	
-def evaluating - for validation and testing
-	
-	
-	
-	
-	
-	
-	
+def train_sup_up - train loop for supervised and unsupervised
+def train_shot - train loop for few-shot	
+def evaluation - Evaluate the models. Results stored into WANDB
