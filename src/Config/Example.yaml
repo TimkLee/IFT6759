@@ -21,4 +21,4 @@ optimizer: "adam"
 momentum: 0.5
 weight_decay: 0.001
 seed: 6759
-
+epoch: 100
