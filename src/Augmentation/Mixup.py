@@ -25,4 +25,4 @@ def Aug(data,labels, seed = 6759):
     aug_data = (last_input * get_alpha.view(get_alpha.size(0),1,1,1) + x1 * (1-get_alpha).view(get_alpha.size(0),1,1,1))
     aug_labels = labels * get_alpha + y1 * (1-get_alpha)
     
-    return (aug_data , aug_labels)
+    return aug_data , aug_labels

@@ -59,11 +59,12 @@ Returns:
 `Aug` Function Usage   
 Args:
 	- data [Tensor]: input images with a size of [Batch size, Channel, Height, Width]
+	- labels [Tensor]: Label class/target of the corresponding data
 	- seed [int]: seed for randomization; default: "6759" 
 
 Returns:
 	- aug_data [Tensor]: output images with a size of [4*Batch size, Channel, Height, Width], where the first [Batch size, Channel, Height, Width] is the original data   
-   
+    - aug_label [Tensor]: Updated label class/target of the corresponding data. Equals to input `labels` for methods that do not change the label class/target
 
 #`Model` Code   
 Class `ModelClass` contians

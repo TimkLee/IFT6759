@@ -14,7 +14,7 @@ import torch
 import torchvision
 import torchvision.transforms.functional as F
 
-def Aug(data,seed = 6759):
+def Aug(data,labels,seed = 6759):
     
     torch.manual_seed(seed)
     aug_data = data
@@ -22,4 +22,4 @@ def Aug(data,seed = 6759):
     for i in range(3):        
             aug_data = torch.cat((aug_data,F.gaussian_blur(data,kernel_size=[2*int(torch.randint(0, 7,(1,)))+1,2*int(torch.randint(0, 7,(1,)))+1])))
 
-    return aug_data
+    return aug_data,labels

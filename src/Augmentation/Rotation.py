@@ -14,7 +14,7 @@ import torch
 import torchvision
 import torchvision.transforms.functional as F
 
-def Aug(data,seed = 6759):
+def Aug(data,labels,seed = 6759):
     
     torch.manual_seed(seed)
     aug_data = data
@@ -22,4 +22,4 @@ def Aug(data,seed = 6759):
     for i in range(3):        
             aug_data = torch.cat((aug_data,F.affine(data,translate=[0,0],angle=torch.randint(-180, 180,(1,)).item(),scale=1,shear=0)))
 
-    return aug_data
+    return aug_data,labels

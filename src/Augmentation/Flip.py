@@ -14,7 +14,7 @@ import torch
 import torchvision
 import torchvision.transforms.functional as F
 
-def Aug(data,seed = 6759):
+def Aug(data,labels,seed = 6759):
     
     torch.manual_seed(seed)
     prob = torch.rand(3)
@@ -32,4 +32,4 @@ def Aug(data,seed = 6759):
             temp = F.vflip(data)
             aug_data = torch.cat((aug_data,F.hflip(temp)))
     
-    return aug_data
+    return aug_data,labels

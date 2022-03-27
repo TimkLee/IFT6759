@@ -14,7 +14,7 @@ import torch
 import torchvision
 import torchvision.transforms as T
 
-def Aug(data,seed = 6759):
+def Aug(data,labels,seed = 6759):
        
     # To allow the method to perform properly, need to inverse the normalization performed first.
     inv_normalize = T.Normalize(
@@ -34,4 +34,4 @@ def Aug(data,seed = 6759):
     
     aug_data = normalize(aug_data)
     
-    return aug_data
+    return aug_data,labels
