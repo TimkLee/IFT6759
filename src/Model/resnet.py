@@ -47,7 +47,7 @@ class ModelClass(nn.Module):
         
         self.resnet18.train()
         self.optimizer.zero_grad()
-        y_pred = F.sigmoid(self.resnet18(data))
+        y_pred = torch.sigmoid(self.resnet18(data))
         
         loss = self.criterion(y_pred,target)
         loss.backward()
@@ -69,15 +69,18 @@ class ModelClass(nn.Module):
 
 
     #@torch.no_grad()
-    def evaluation(self, dataloader):
+    def evaluation(self, data, target):
         """
         Evaluate the model for various evaluation metrics. Results propogated to WANDB for visualization 
         """
         #TODO
-        #with torch.no_grad():
         self.resnet18.eval()
+        with torch.no_grad():
+            y_pred = torch.sigmoid(self.resnet18(data))
+            loss = self.criterion(y_pred,target)
+            y_pred = (y_pred>0.5).float()
+            acc = (y_pred == target).float().sum()/target.shape[0] 
         
-
-        return None
+        return acc, loss
 
 

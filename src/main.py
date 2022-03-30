@@ -84,17 +84,19 @@ def main(args):
         train_tot_accs, valid_tot_accs = [], []
         train_tot_losses, valid_tot_losses = [], []
     
-        Model = ModelClass(config)
+        Model = ModelClass(optimizer=optimizer,lr=learn_rate)
+        Model = Model.to(device=device)
         
         for ep in range(epoch):
             
-            logging.info(f"==========Supervised Learning Epoch Number: {ep+1}/epoch==========")
+            logging.info(f"==========Supervised Learning Epoch Number: {ep+1}/{epoch}==========")
             train_accs, valid_accs = [], []
             train_losses, valid_losses = [], []
             
             for idx, batch in enumerate(labelledloader):
                 data, target = batch
-                labels = F.one_hot(target, num_classes = 10).float()
+                data = data.to(device=device)
+                labels = F.one_hot(target, num_classes = 10).float().to(device=device)
                 acc, loss = Model.train_sup_up(data,labels)
                 train_accs.append(acc)
                 train_losses.append(loss)
@@ -106,7 +108,9 @@ def main(args):
             
             for idx, batch in enumerate(validloader):
                 data, target = batch
-                acc, loss = Model.Evaluate(data,target)
+                data = data.to(device=device)
+                labels = F.one_hot(target, num_classes = 10).float().to(device=device)
+                acc, loss = Model.evaluate(data,labels)
                 valid_accs.append(acc)
                 valid_losses.append(loss)
                 
