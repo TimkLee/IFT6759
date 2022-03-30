@@ -34,6 +34,8 @@ def main(args):
     weight_decay = config["weight_decay"]
     seed = config["seed"]
     epoch = config["epoch"]
+
+    
     
     # Importing function for loading the desired data    
     logging.info(f"==========Dataset: {data_file}==========")
@@ -42,12 +44,17 @@ def main(args):
     Data_Load = _temp.Data_Load
     
     # Importing the augmentation methods
-    Aug = []
-    for i in range(len(augment_file)):
-        logging.info(f"==========Augmentation Methods: {augment_file[i]}, with a strength value of {augment_strength[i]}==========")
-        augment_file_path = f"Augmentation.{augment_file[i]}"
-        _temp = __import__(name=augment_file_path, fromlist=['Aug'])
-        Aug.append(_temp.Aug)
+    if augment_file == None:
+        print("No augmentation method selected")
+    else:
+        Aug = []
+        for i in range(len(augment_file)):
+            logging.info(f"==========Augmentation Methods: {augment_file[i]}, with a strength value of {augment_strength[i]}==========")
+            augment_file_path = f"Augmentation.{augment_file[i]}"
+            _temp = __import__(name=augment_file_path, fromlist=['Aug'])
+            Aug.append(_temp.Aug)
+    
+    
     #Aug[0]()    
     
     # Importing the model class
@@ -69,6 +76,9 @@ def main(args):
     logging.info("Dataloader ready")    
     
     
+
+    
+    
     # For supervised learning task
     if (task == "super"):
         train_tot_accs, valid_tot_accs = [], []
@@ -84,7 +94,8 @@ def main(args):
             
             for idx, batch in enumerate(labelledloader):
                 data, target = batch
-                acc, loss = Model.Train(data,target)
+                labels = F.one_hot(target, num_classes = 10).float()
+                acc, loss = Model.train_sup_up(data,labels)
                 train_accs.append(acc)
                 train_losses.append(loss)
             
@@ -262,16 +273,14 @@ if __name__ == "__main__":
     # Check for the device
     if (args.device == "cuda") and not torch.cuda.is_available():
         logging.warning(
-            "CUDA is not available, make that your environment is "
-            "running on GPU (e.g. in the Notebook Settings in Google Colab). "
+            "CUDA is not available, make that your environment is running on GPU (e.g. in the Notebook Settings in Google Colab). "
             'Forcing device="cpu".'
         )
         args.device = "cpu"
 
     else:
         logging.warning(
-            "You are about to run on CPU, and might run out of memory "
-            "shortly. You can try setting batch_size=1 to reduce memory usage."
+            "You are about to run on CPU, and might run out of memory shortly. You can try setting batch_size=1 to reduce memory usage."
         )
 
 

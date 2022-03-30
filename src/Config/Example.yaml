@@ -15,10 +15,10 @@ eval:
     "Acc"
        
 batch_size: 256
-learning_rate: 0.1
-epoch: 100
+learning_rate: 0.003
+epoch: 10
 optimizer: "adam"
 momentum: 0.5
 weight_decay: 0.001
 seed: 6759
-epoch: 100
+
