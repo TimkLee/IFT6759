@@ -8,7 +8,7 @@ from torch import optim
 
 class ModelClass(nn.Module):
 
-    def __init__(self,num_classes=10,optimizer = "adam", lr=0.003, criterion = "BCELoss"):
+    def __init__(self,num_classes=10,optimizer = "adam", lr=0.003, criterion = "CrossEntropyLoss"):
         """
         reuse of torchvision module : https://pytorch.org/vision/stable/generated/torchvision.models.resnet18.html
         """
@@ -20,8 +20,8 @@ class ModelClass(nn.Module):
         else:
             print("Optimizer not recognized")
 
-        if criterion == "BCELoss":
-            self.criterion = nn.BCELoss()    
+        if criterion == "CrossEntropyLoss":
+            self.criterion = nn.CrossEntropyLoss()    
         else:
             print("Loss criterion not recognized")
             
@@ -47,14 +47,14 @@ class ModelClass(nn.Module):
         
         self.resnet18.train()
         self.optimizer.zero_grad()
-        y_pred = torch.sigmoid(self.resnet18(data))
+        y_pred = self.resnet18(data)
+        #y_pred = torch.sigmoid(self.resnet18(data))
         
         loss = self.criterion(y_pred,target)
         loss.backward()
         self.optimizer.step()
         
-        y_pred = (y_pred>0.5).float()
-        acc = (y_pred == target).float().sum()/target.shape[0]        
+        acc = (torch.argmax(y_pred, dim=1) == torch.argmax(target, dim=1)).float().sum()/target.shape[0]      
 
         return acc, loss
 
@@ -77,9 +77,10 @@ class ModelClass(nn.Module):
         self.resnet18.eval()
         with torch.no_grad():
             y_pred = torch.sigmoid(self.resnet18(data))
+            
             loss = self.criterion(y_pred,target)
-            y_pred = (y_pred>0.5).float()
-            acc = (y_pred == target).float().sum()/target.shape[0] 
+            
+            acc = (torch.argmax(y_pred, dim=1) == torch.argmax(target, dim=1)).float().sum()/target.shape[0] 
         
         return acc, loss
 
