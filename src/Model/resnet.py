@@ -8,7 +8,7 @@ from torch import optim
 
 class ModelClass(nn.Module):
 
-    def __init__(self,num_classes=10,optimizer = "adam", lr=0.003, criterion = "CrossEntropyLoss"):
+    def __init__(self,num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, criterion = "CrossEntropyLoss"):
         """
         reuse of torchvision module : https://pytorch.org/vision/stable/generated/torchvision.models.resnet18.html
         """
@@ -16,7 +16,7 @@ class ModelClass(nn.Module):
         self.resnet18 = resnet18(progress=False,num_classes=num_classes)
         
         if optimizer == "adam":
-            self.optimizer = optim.Adam(self.resnet18.parameters(), lr=lr)
+            self.optimizer = optim.Adam(self.resnet18.parameters(), lr=lr, weight_decay=weight_decay)
         else:
             print("Optimizer not recognized")
 

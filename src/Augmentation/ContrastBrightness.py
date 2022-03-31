@@ -34,4 +34,6 @@ def Aug(data,labels,seed = 6759):
             temp = F.adjust_brightness(data, brightness_factor=torch.FloatTensor(1,).uniform_(0.5, 1.5))
             aug_data = torch.cat((aug_data,F.adjust_contrast(temp, contrast_factor=torch.FloatTensor(1,).uniform_(0.5, 1.5))))    
     
-    return aug_data,labels
+    aug_labels = torch.cat((labels,labels,labels,labels))
+    
+    return aug_data,aug_labels

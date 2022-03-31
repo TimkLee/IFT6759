@@ -34,4 +34,6 @@ def Aug(data,labels,seed = 6759):
     
     aug_data = normalize(aug_data)
     
-    return aug_data,labels
+    aug_labels = torch.cat((labels,labels,labels,labels))
+    
+    return aug_data,aug_labels

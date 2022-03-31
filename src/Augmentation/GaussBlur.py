@@ -22,4 +22,6 @@ def Aug(data,labels,seed = 6759):
     for i in range(3):        
             aug_data = torch.cat((aug_data,F.gaussian_blur(data,kernel_size=[2*int(torch.randint(0, 7,(1,)))+1,2*int(torch.randint(0, 7,(1,)))+1])))
 
-    return aug_data,labels
+    aug_labels = torch.cat((labels,labels,labels,labels))
+    
+    return aug_data,aug_labels

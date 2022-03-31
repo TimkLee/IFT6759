@@ -22,4 +22,6 @@ def Aug(data,labels,seed = 6759):
     for i in range(3):        
             aug_data = torch.cat((aug_data,F.affine(data,translate=[0,0],angle=torch.randint(-180, 180,(1,)).item(),scale=1,shear=0)))
 
-    return aug_data,labels
+    aug_labels = torch.cat((labels,labels,labels,labels))
+    
+    return aug_data,aug_labels
