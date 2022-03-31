@@ -1,0 +1,20 @@
+---
+# "super" - supervised learning, "semi" - semi supervised learning, "shot" - few shot learning
+task: "super"
+
+data: "cifar10"
+model: "resnet"
+augment: 
+
+aug_strength:
+
+eval:
+    "Acc"
+       
+batch_size: 256
+learning_rate: 0.01
+epoch: 50
+optimizer: "adam"
+weight_decay: 0
+seed: 6759
+
