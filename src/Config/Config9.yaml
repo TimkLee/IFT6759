@@ -5,19 +5,11 @@ task: "super"
 data: "cifar10"
 model: "resnet"
 augment: 
-    - "Flip"
-    - "Translation"
-    - "Rotation"
-    - "ContrastBrightness"
-    - "GaussBlur"
+    - "RandAugment"
 
 aug_strength:
-    - 0.2
-    - 0.2
-    - 0.2
-    - 0.2
-    - 0.2
-
+    - 1
+    
 eval:
     "Acc"
        

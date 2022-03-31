@@ -30,7 +30,7 @@ def main(args):
     learn_rate = config["learning_rate"]
     epoch = config["epoch"]
     optimizer = config["optimizer"]
-    momentum = config["momentum"]
+    #momentum = config["momentum"]
     weight_decay = config["weight_decay"]
     seed = config["seed"]
     epoch = config["epoch"]
@@ -76,6 +76,20 @@ def main(args):
     logging.info("Dataloader ready")    
     
     
+    
+    # Preparation for portional augmentation
+    augment_count = np.multiply(len(labelledloader.dataset),augment_strength).astype(int)
+    res_history = []
+    idx_val = []
+    idx_count = 0
+
+    residual = labelledloader.batch_size
+    for i in range(len(augment_count)):
+      current_residual = ( (augment_count[i] - (labelledloader.batch_size-residual))/labelledloader.batch_size - np.floor((augment_count[i] - (labelledloader.batch_size-residual))/labelledloader.batch_size) ) *labelledloader.batch_size
+      idx_count =  idx_count + (np.ceil((augment_count[i] - (labelledloader.batch_size-residual))/labelledloader.batch_size))
+      residual = current_residual
+      res_history.append(current_residual.astype(int))
+      idx_val.append(idx_count.astype(int)-1)
 
     
     
@@ -84,7 +98,7 @@ def main(args):
         train_tot_accs, valid_tot_accs = [], []
         train_tot_losses, valid_tot_losses = [], []
     
-        Model = ModelClass(optimizer=optimizer,lr=learn_rate)
+        Model = ModelClass(optimizer=optimizer,lr=learn_rate,weight_decay=weight_decay)
         Model = Model.to(device=device)
         
         for ep in range(epoch):
@@ -97,7 +111,33 @@ def main(args):
                 data, target = batch
                 data = data.to(device=device)
                 labels = F.one_hot(target, num_classes = 10).float().to(device=device)
-                acc, loss = Model.train_sup_up(data,labels)
+                
+                if augment_file != None:
+                  if idx == idx_val[count]:
+                    
+                    if count+1 != len(Aug):
+                      temp_Aug, temp_label = Aug[count](data[0:res_history[count]],labels[0:res_history[count]])
+                      Aug_data = temp_Aug
+                      Aug_labels = temp_label
+
+                      temp_Aug, temp_label = Aug[count](data[res_history[count]:-1],labels[res_history[count]:-1])
+                      Aug_data = torch.cat((Aug_data, temp_Aug), 0)
+                      Aug_labels = torch.cat((Aug_labels, temp_label), 0)
+
+                      count = count+1
+                    else:
+                      temp_Aug, temp_label = Aug[count](data,labels)
+                      Aug_data = temp_Aug
+                      Aug_labels = temp_label
+                  else:
+                    temp_Aug, temp_label = Aug[count](data,labels)
+                    Aug_data = temp_Aug
+                    Aug_labels = temp_label
+                else:
+                  Aug_data = torch.cat((data,data,data,data),0)
+                  Aug_labels = torch.cat((labels,labels,labels,labels),0)                
+                   
+                acc, loss = Model.train_sup_up(Aug_data,Aug_labels)
                 train_accs.append(acc)
                 train_losses.append(loss)
             
@@ -220,6 +260,15 @@ def main(args):
         
     # For few-shot learning task
     else:    
+    
+    
+    
+    
+    # Save model
+    pickle_path = f"./Model/{args.config_file}.pickle"
+    logging.info("Saving model to pickle file")
+    with open(pickle_path, "wb") as f:
+      pickle.dump(Model, f, pickle.HIGHEST_PROTOCOL)
     
     
     # Final test accuracy

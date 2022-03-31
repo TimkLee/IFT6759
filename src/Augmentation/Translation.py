@@ -33,4 +33,6 @@ def Aug(data,labels,seed = 6759):
             temp = F.vflip(data)
             aug_data = torch.cat((aug_data,F.affine(data,translate=[torch.randint(-16, 16,(1,)),torch.randint(-16, 16,(1,))],angle=0,scale=1,shear=0)))
     
-    return aug_data,labels
+    aug_labels = torch.cat((labels,labels,labels,labels))
+    
+    return aug_data,aug_labels
