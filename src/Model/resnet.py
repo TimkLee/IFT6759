@@ -32,7 +32,11 @@ class ModelClass(nn.Module):
         output : y_pred, output after forward pass into resnet18 block. With shape 
         """
         #with torch.no_grad():
-        y_pred = self.resnet18(x)
+        self.resnet18.eval()
+        with torch.no_grad():
+            # y_pred = F.softmax(self.resnet18(data))
+            # y_pred = self.resnet18(data)
+            y_pred = torch.sigmoid(self.resnet18(data))
             
         return y_pred
 
@@ -47,8 +51,8 @@ class ModelClass(nn.Module):
         
         self.resnet18.train()
         self.optimizer.zero_grad()
-        y_pred = self.resnet18(data)
-        #y_pred = torch.sigmoid(self.resnet18(data))
+        # y_pred = self.resnet18(data)
+        y_pred = torch.sigmoid(self.resnet18(data))
         
         loss = self.criterion(y_pred,target)
         loss.backward()
@@ -76,6 +80,7 @@ class ModelClass(nn.Module):
         #TODO
         self.resnet18.eval()
         with torch.no_grad():
+            # y_pred = self.resnet18(data)
             y_pred = torch.sigmoid(self.resnet18(data))
             
             loss = self.criterion(y_pred,target)

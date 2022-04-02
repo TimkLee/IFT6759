@@ -1,11 +1,11 @@
 ---
 # "super" - supervised learning, "semi" - semi supervised learning, "shot" - few shot learning
-task: "super"
+task: "semi"
 
 data: "cifar10"
 model: "resnet"
 augment: 
-    - "GaussBlur"
+    - "Flip"
 
 aug_strength:
     - 1
@@ -13,9 +13,9 @@ aug_strength:
 eval:
     "Acc"
        
-batch_size: 256
+batch_size: 250
 learning_rate: 0.01
-epoch: 50
+epoch: 100
 optimizer: "adam"
 weight_decay: 0
 seed: 6759
