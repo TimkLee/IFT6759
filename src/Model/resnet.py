@@ -36,7 +36,7 @@ class ModelClass(nn.Module):
         with torch.no_grad():
             # y_pred = F.softmax(self.resnet18(data))
             # y_pred = self.resnet18(data)
-            y_pred = torch.sigmoid(self.resnet18(data))
+            y_pred = torch.sigmoid(self.resnet18(x))
             
         return y_pred
 
