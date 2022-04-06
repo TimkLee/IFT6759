@@ -3,17 +3,18 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import optim
 
 class ModelClass(nn.Module):
     """
     All CNN model C 
     ref : https://arxiv.org/pdf/1412.6806.pdf check table 2 (we replace max pooling from table 1 with conv layers with stride=2 to get AllCNN correctly)
     """
-    def __init__(self, num_classes=10):
+    def __init__(self, num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, criterion = "CrossEntropyLoss"):
         super(ModelClass, self).__init__()
         
         self.num_classes = num_classes
-        
+
         #Convolutional Layers:
         #Block1
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=96, kernel_size=(3, 3), padding='same')
@@ -37,6 +38,18 @@ class ModelClass(nn.Module):
         #GlobalAveragePooling
         #Useful Reference: https://discuss.pytorch.org/t/global-average-pooling-in-pytorch/6721/12
         self.gap = nn.AvgPool2d(kernel_size=(6, 6))
+
+        #hyper parameters :
+
+        if optimizer == "adam":
+            self.optimizer = optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
+        else:
+            print("Optimizer not recognized")
+
+        if criterion == "CrossEntropyLoss":
+            self.criterion = nn.CrossEntropyLoss()    
+        else:
+            print("Loss criterion not recognized")
 
     def forward(self, x):
         """
@@ -62,13 +75,22 @@ class ModelClass(nn.Module):
         x = x.squeeze()
         return x
 
-    def train_sup_up(self, epoch, dataloader, optimizer, criterion):
+    def train_sup_up(self, data, target):
         """
         TRAIN LOOP FOR SUPERVISED/UNSUPERVISED LEARNING
         Train the model with the given criterion, optimizer, dataloader for given epochs. Results propogated to WANDB for visualization
         """
-        #TODO
-        pass
+        self.train()
+        self.optimizer.zero_grad()
+
+        y_pred = self.forward(data)
+        loss = self.criterion(y_pred,target)
+        loss.backward()
+        self.optimizer.step()
+        
+        acc = (torch.argmax(y_pred, dim=1) == torch.argmax(target, dim=1)).float().sum()/target.shape[0]      
+
+        return acc, loss
 
     def train_shot(self, epoch, dataloader, optimizer, criterion):
         """
@@ -80,9 +102,17 @@ class ModelClass(nn.Module):
 
 
     @torch.no_grad()
-    def evaluation():
+    def evaluation(self, data, target):
         """
         Evaluate the model for various evaluation metrics. Results propogated to WANDB for visualization 
         """
         #TODO
-        pass
+        self.eval()
+        with torch.no_grad():
+            y_pred = torch.sigmoid(self.forward(data))
+            
+            loss = self.criterion(y_pred,target)
+            
+            acc = (torch.argmax(y_pred, dim=1) == torch.argmax(target, dim=1)).float().sum()/target.shape[0] 
+        
+        return acc, loss
