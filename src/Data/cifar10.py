@@ -24,6 +24,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 import logging
 
+
 logging.basicConfig(level=logging.INFO)
 
 def Data_Load(task = "super",batch_size = 256, seed = 6759):
@@ -58,7 +59,7 @@ def Data_Load(task = "super",batch_size = 256, seed = 6759):
         # Semi-supervised learning task
         logging.info("Data split for semi-supervised learning task")
         # Use 20% of the data as "labelled" data
-        label_set, unlabel_set = random_split(traindata, [9000, 36000], generator=torch.Generator().manual_seed(seed))
+        label_set, unlabel_set = random_split(train_set, [9000, 36000], generator=torch.Generator().manual_seed(seed))
         labelledloader = DataLoader(label_set, batch_size=batch_size, shuffle=True, num_workers=2)  
         unlabelledloader = DataLoader(unlabel_set, batch_size=batch_size, shuffle=True, num_workers=2)  
 

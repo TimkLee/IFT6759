@@ -8,7 +8,7 @@ from torch import optim
 
 class ModelClass(nn.Module):
 
-    def __init__(self,num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, criterion = "CrossEntropyLoss"):
+    def __init__(self,num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, momentum = 0.9,criterion = "CrossEntropyLoss"):
         """
         reuse of torchvision module : https://pytorch.org/vision/stable/generated/torchvision.models.resnet18.html
         """
@@ -17,6 +17,8 @@ class ModelClass(nn.Module):
         
         if optimizer == "adam":
             self.optimizer = optim.Adam(self.resnet18.parameters(), lr=lr, weight_decay=weight_decay)
+        elif optimizer == "sgd":
+            self.optimizer = optim.SGD(self.resnet18.parameters(), lr=lr,momentum = momentum, weight_decay=weight_decay)
         else:
             print("Optimizer not recognized")
 
@@ -35,8 +37,8 @@ class ModelClass(nn.Module):
         self.resnet18.eval()
         with torch.no_grad():
             # y_pred = F.softmax(self.resnet18(data))
-            # y_pred = self.resnet18(data)
-            y_pred = torch.sigmoid(self.resnet18(data))
+            y_pred = self.resnet18(x)
+            # y_pred = torch.sigmoid(self.resnet18(data))
             
         return y_pred
 
@@ -51,8 +53,8 @@ class ModelClass(nn.Module):
         
         self.resnet18.train()
         self.optimizer.zero_grad()
-        # y_pred = self.resnet18(data)
-        y_pred = torch.sigmoid(self.resnet18(data))
+        y_pred = self.resnet18(data)
+        # y_pred = torch.sigmoid(self.resnet18(data))
         
         loss = self.criterion(y_pred,target)
         loss.backward()
@@ -80,8 +82,8 @@ class ModelClass(nn.Module):
         #TODO
         self.resnet18.eval()
         with torch.no_grad():
-            # y_pred = self.resnet18(data)
-            y_pred = torch.sigmoid(self.resnet18(data))
+            y_pred = self.resnet18(data)
+            # y_pred = torch.sigmoid(self.resnet18(data))
             
             loss = self.criterion(y_pred,target)
             

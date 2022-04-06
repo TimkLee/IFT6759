@@ -107,8 +107,8 @@ def main(args):
                   aug_num.append(augment_strength[i]*batch_len)
 
                 if len(aug_num) != 1:
-                  aug_num = torch.cat(aug_num)
-                  aug_ind = torch.cumsum(aug_num)
+                  aug_num = torch.tensor(aug_num)
+                  aug_ind = torch.cumsum(aug_num,0).int()
                 else:
                   aug_ind = aug_num
 
