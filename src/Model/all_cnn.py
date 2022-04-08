@@ -167,15 +167,15 @@ class ModelClass(nn.Module):
 
 			#Extraction of Dataset from Dataloader and convertion into TensorDataset for Eval3 and Eval 4
 			testset = self.tensor_dataset(test_loader)
+			classes = tuple(test_loader.dataset.classes)
 
 			#K-hardest examples #Eval 3
 			highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
 			wandb.log({"high-loss-examples":
-			           [wandb.Image(hard_example, caption= "Pred: " + str(int(pred)) + ", Label: " +  str(int(label)))
+			           [wandb.Image(hard_example, caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
 			            for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
 			
 			#Confusion Matrix #Eval 4
-			classes = tuple(test_loader.dataset.classes)
 			labels, predictions = self.confusion_matrix(testset)
 			wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
 			                            preds=predictions, y_true=labels,
@@ -269,5 +269,3 @@ class ModelClass(nn.Module):
 				predictions = torch.cat((predictions, pred), dim=0)
 
 		return labels, predictions
-
-
