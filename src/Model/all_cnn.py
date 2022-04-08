@@ -153,21 +153,27 @@ class ModelClass(nn.Module):
 		Evaluate the model for various evaluation metrics. Results propogated to WANDB for visualization 
 		"""
 		with wandb.init(project="Supervised Learning", entity='ift6759-aiadlp', job_type="report") as run:
+			#Class Names
+			classes = tuple(test_loader.dataset.classes)
+
 			#Test Loss and Accuracy #Eval 1
 			test_loss, test_accuracy = self.test(test_loader)
 			run.summary.update({"test/loss": test_loss, "test/accuracy": test_accuracy})
 			
-			#Per Class Accuracy
+			#Per Class Accuracy #Eval 2
 			correct_pred, total_pred = self.per_class_accuracy(test_loader) 
+			columns = ["Configs"]
+			accuracies = ["Config1"] #Replace it with name of run which would be equal to Config1 and so on.
 
-			#Temporary Print of dictionary TODO: Move into WANDB #Eval 2
 			for classname, correct_count in correct_pred.items():
 				accuracy = 100. * correct_count / total_pred[classname]
-				print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
+				columns.appned(classname)
+				accuracies.appned(accuracy)
+				print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
+			wandb.log({"Per class Accuracy": wandb.Table(columns=columns, data=accuracies)})
 
 			#Extraction of Dataset from Dataloader and convertion into TensorDataset for Eval3 and Eval 4
 			testset = self.tensor_dataset(test_loader)
-			classes = tuple(test_loader.dataset.classes)
 
 			#K-hardest examples #Eval 3
 			highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
