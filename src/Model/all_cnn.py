@@ -200,7 +200,7 @@ class ModelClass(nn.Module):
 	@torch.no_grad():
 	def get_hardest_k_examples(self, dataset, k=32):
 		"""
-		Finds the K-Hardest Examples fromt he given dataset
+		Finds the K-Hardest Examples fromt the given dataset
 		"""
 		loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
