@@ -12,6 +12,9 @@ Select a value in the range of [1, 8], this value times 2 represents the height 
 
 """
 
+import torch
+import numpy as np
+
 
 def Aug(data, labels, seed = 6759):
     # torch.manual_seed(seed)
@@ -28,21 +31,28 @@ def Aug(data, labels, seed = 6759):
     length = 16
 
     aug_data = data
-    mask = np.ones((h, w), np.float32)
-
-    for i, img in enumerate(data):
-        y = np.random.randint(h)
-        x = np.random.randint(w)
-
-        y1 = np.clip(y - length // 2, 0, h)
-        y2 = np.clip(y + length // 2, 0, h)
-        x1 = np.clip(x - length // 2, 0, w)
-        x2 = np.clip(x + length // 2, 0, w)
-
-        mask[y1: y2, x1: x2] = 0.
-
-        mask = torch.from_numpy(mask)
-        mask = mask.expand_as(img)
-        aug_data[i] = img * mask
     
-    return (aug_data, labels)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    for i in range(1):
+        temp = data
+        for ind, img in enumerate(data):
+            mask = torch.ones(h,w, dtype = torch.float32)
+            y = np.random.randint(h)
+            x = np.random.randint(w)
+
+            y1 = np.clip(y - length // 2, 0, h)
+            y2 = np.clip(y + length // 2, 0, h)
+            x1 = np.clip(x - length // 2, 0, w)
+            x2 = np.clip(x + length // 2, 0, w)
+
+            mask[y1: y2, x1: x2] = 0.
+
+            mask = mask.expand_as(img)
+            mask = mask.to(device)
+            temp[ind] = img * mask
+        aug_data = torch.cat((aug_data,temp))
+    
+    aug_labels = torch.cat((labels,labels))
+    
+    return (aug_data, aug_labels)
