@@ -11,10 +11,12 @@ Select a value in the range of [1, 8], this value times 2 represents the height 
     seed [int]: seed for randomization; default: "6759"
 
     Returns:
-    aug_data [Tensor]: output images with a size of [Batch size, Channel, Height, Width]
-    aug_labels [Tensor]: onehot encoded output labels with a size of [Batch size, num_class,]
+    aug_data [Tensor]: output images with a size of [2*Batch size, Channel, Height, Width]
+    aug_labels [Tensor]: onehot encoded output labels with a size of [2*Batch size, num_class,]
 
 """
+import torch
+import numpy as np
 
 def onehot(size, target):
     vec = torch.zeros(size, dtype=torch.float32)
@@ -79,5 +81,8 @@ def Aug(data, labels, seed = 6759):
 
             aug_data[i] = img
             aug_labels[i] = lb_onehot
+    
+    aug_data = torch.cat((data, aug_data))
+    aug_labels = torch.cat((labels, aug_labels))
 
     return (aug_data, aug_labels)
