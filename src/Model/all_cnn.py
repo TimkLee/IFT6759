@@ -13,7 +13,7 @@ class ModelClass(nn.Module):
 	All CNN model C 
 	ref : https://arxiv.org/pdf/1412.6806.pdf check table 2 (we replace max pooling from table 1 with conv layers with stride=2 to get AllCNN correctly)
 	"""
-	def __init__(self, num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, criterion = "CrossEntropyLoss", device):
+	def __init__(self, device, num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, criterion = "CrossEntropyLoss"):
 		super(ModelClass, self).__init__()
 		
 		self.num_classes = num_classes
@@ -165,16 +165,22 @@ class ModelClass(nn.Module):
 				accuracy = 100. * correct_count / total_pred[classname]
 				print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
 
-			#K-hardest examples #Eval 3
+			#Extraction of Dataset from Dataloader and convertion into TensorDataset for Eval3 and Eval 4
 			testset = self.tensor_dataset(test_loader)
+
+			#K-hardest examples #Eval 3
 			highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
 			wandb.log({"high-loss-examples":
 			           [wandb.Image(hard_example, caption= "Pred: " + str(int(pred)) + ", Label: " +  str(int(label)))
 			            for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
 			
 			#Confusion Matrix #Eval 4
-			#TODO
-	
+			classes = tuple(test_loader.dataset.classes)
+			labels, predictions = self.confusion_matrix(testset)
+			wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+			                            preds=predictions, y_true=labels,
+			                            class_names=classes)})
+
 	@torch.no_grad()
 	def per_class_accuracy(self, dataloader):
 		"""
@@ -197,10 +203,18 @@ class ModelClass(nn.Module):
 
 		return correct_pred, total_pred
 
-	@torch.no_grad():
+	def tensor_dataset(self, dataloader):
+		"""
+		Utility function which converts given DataLoader's Dataset into TensorDataset
+		"""
+		x, y = torch.tensor(dataloader.dataset.data), torch.tensor(dataloader.dataset.targets)
+		return TensorDataset(x, y)
+
+	@torch.no_grad()
 	def get_hardest_k_examples(self, dataset, k=32):
 		"""
-		Finds the K-Hardest Examples fromt the given dataset
+		Finds the K-Hardest Examples fromt the given TensorDataset
+		NB: Please pass the dataloader into the tensor_dataset function to get the appropriate TensorDataset
 		"""
 		loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
@@ -230,9 +244,30 @@ class ModelClass(nn.Module):
 
 		return highest_k_losses, hardest_k_examples, true_labels, predictions
 
-	def tensor_dataset(self, dataloader):
+	@torch.no_grad()
+	def confusion_matrix(self, dataset):
 		"""
-		Utility function which converts given DataLoader's Dataset into TensorDataset
+		Returns the Class Predictions, True Predictions and Classnames for given TensorDataset
+		NB: Please pass the dataloader into the tensor_dataset function to get the appropriate TensorDataset
 		"""
-		x, y = torch.tensor(dataloader.dataset.data), torch.tensor(dataloader.dataset.targets)
-		return TensorDataset(x, y)
+		loader = DataLoader(dataset, batch_size=1, shuffle=False)
+
+		predictions = None
+		labels = None
+
+		self.eval()
+		for data, targets in loader:
+			data, targets = data.to(self.device), targets.to(self.device)
+			outputs = self.forward(data)
+			pred = outputs.argmax(dim=1, keepdim=True)
+
+			if labels is None:
+				labels = targets
+				predictions = pred
+			else:
+				labels = torch.cat((labels, targets), dim=0)
+				predictions = torch.cat((predictions, pred), dim=0)
+
+		return labels, predictions
+
+
