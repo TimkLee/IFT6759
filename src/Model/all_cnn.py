@@ -167,8 +167,8 @@ class ModelClass(nn.Module):
 
 			for classname, correct_count in correct_pred.items():
 				accuracy = 100. * correct_count / total_pred[classname]
-				columns.appned(classname)
-				accuracies.appned(accuracy)
+				columns.append(classname)
+				accuracies.append(accuracy)
 				print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
 			wandb.log({"Per class Accuracy": wandb.Table(columns=columns, data=accuracies)})
 
