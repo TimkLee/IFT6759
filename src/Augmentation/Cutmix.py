@@ -48,9 +48,9 @@ def rand_bbox(size, lam):
 
     return bbx1, bby1, bbx2, bby2
 
-def Aug(data, labels, seed = 6759):
-    torch.random.manual_seed(seed)
-    np.random.seed(seed)
+def Aug(data, labels):
+    #torch.random.manual_seed(seed)
+    #np.random.seed(seed)
 
     beta=1.0
     prob=1.0

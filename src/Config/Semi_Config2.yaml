@@ -3,7 +3,7 @@
 task: "semi"
 
 data: "cifar10"
-model: "resnet"
+model: "resnet20"
 augment: 
     - "Translation"
 
@@ -13,10 +13,10 @@ aug_strength:
 eval:
     "Acc"
        
-batch_size: 250
-learning_rate: 0.001
+batch_size: 120
+learning_rate: 0.01
 momentum: 0.9
-epoch: 50
+epoch: 160
 optimizer: "sgd"
-weight_decay: 0.1
+weight_decay: 0.0005
 seed: 6759

@@ -16,12 +16,12 @@ import torch
 import numpy as np
 
 
-def Aug(data, labels, seed = 6759):
+def Aug(data, labels):
     # torch.manual_seed(seed)
 
     # setting seed here would cutout the same portion of the image everytime. which is not the intended behaviour
     # TODO: reproducibility vs algo tradeoff
-    np.random.seed(seed)
+    #np.random.seed(seed)
 
     h = data.shape[2]
     w = data.shape[3]

@@ -15,8 +15,8 @@ The strength parameter is selected in the range of [0, 1].
 import torch
 import numpy as np
 
-def Aug(data,labels, seed = 6759):
-    torch.manual_seed(seed)
+def Aug(data,labels):
+    #torch.manual_seed(seed)
     alpha = 0.4
 
     #sample alpha from beta distribution
