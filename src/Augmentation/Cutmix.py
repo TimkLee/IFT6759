@@ -18,10 +18,6 @@ Select a value in the range of [1, 8], this value times 2 represents the height 
 import torch
 import numpy as np
 
-def onehot(size, target):
-    vec = torch.zeros(size, dtype=torch.float32)
-    vec[target] = 1.
-    return vec
 
 def rand_bbox(size, lam):
     if len(size) == 4:
@@ -60,9 +56,8 @@ def Aug(data, labels):
     aug_labels = labels
 
     for i, img in enumerate(data):
-            lb = labels[i]
-            lb_onehot = onehot(num_class, lb)
-
+            lb_onehot = labels[i]
+            print(img.size())
             r = np.random.rand(1)
             if beta <= 0 or r > prob:
                 continue
@@ -70,10 +65,9 @@ def Aug(data, labels):
             # generate mixed sample
             lam = np.random.beta(beta, beta)
 
-            shuffle = torch.randperm(data.size(0)).to(data.device)
-            img2, lb2 = data[shuffle], labels[shuffle]
-            lb2_onehot = onehot(num_class, lb2)
-
+            shuffle = torch.randperm(data.size(0))[0].to(data.device)
+            img2, lb2_onehot = data[shuffle], labels[shuffle]
+            
             bbx1, bby1, bbx2, bby2 = rand_bbox(img.size(), lam)
             img[:, bbx1:bbx2, bby1:bby2] = img2[:, bbx1:bbx2, bby1:bby2]
             lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (img.size()[-1] * img.size()[-2]))
