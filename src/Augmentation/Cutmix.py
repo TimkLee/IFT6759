@@ -57,7 +57,6 @@ def Aug(data, labels):
 
     for i, img in enumerate(data):
             lb_onehot = labels[i]
-            print(img.size())
             r = np.random.rand(1)
             if beta <= 0 or r > prob:
                 continue
