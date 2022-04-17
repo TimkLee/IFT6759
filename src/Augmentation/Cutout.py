@@ -35,7 +35,7 @@ def Aug(data, labels):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     for i in range(1):
-        temp = data
+        temp = data.clone()
         for ind, img in enumerate(data):
             mask = torch.ones(h,w, dtype = torch.float32)
             y = np.random.randint(h)

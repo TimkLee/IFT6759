@@ -15,24 +15,26 @@ import torchvision
 import torchvision.transforms as T
 
 def Aug(data,labels):
-       
+    
+    
     # To allow the method to perform properly, need to inverse the normalization performed first.
-    inv_normalize = T.Normalize(
-        mean=[-0.49139968/0.24703223, -0.48215841/0.24348513, -0.44653091/0.26158784],
-        std=[1/0.24703223, 1/0.24348513, 1/0.26158784])
+    #inv_normalize = T.Normalize(
+    #    mean=[-0.49139968/0.24703223, -0.48215841/0.24348513, -0.44653091/0.26158784],
+    #    std=[1/0.24703223, 1/0.24348513, 1/0.26158784])
     
     #torch.manual_seed(seed)
-    inv_norm_data = inv_normalize(data)*255
-    aug_data = inv_norm_data
+    #inv_norm_data = inv_normalize((data.clone()-127.5)/255)
+    inv_norm_data = data.clone()
+    aug_data = inv_norm_data.clone()
     RandAug = T.RandAugment()
     
     for i in range(1):        
             aug_data = torch.cat((aug_data,RandAug(((inv_norm_data).to(torch.uint8))) ))
     
     # Reapplying the normalization
-    normalize = T.Normalize([0.49139968, 0.48215841, 0.44653091], [0.24703223, 0.24348513, 0.26158784])
+    #normalize = T.Normalize([0.49139968, 0.48215841, 0.44653091], [0.24703223, 0.24348513, 0.26158784])
     
-    aug_data = normalize(aug_data)
+    #aug_data = normalize(aug_data)*255+127.5
     
     aug_labels = torch.cat((labels,labels))
     

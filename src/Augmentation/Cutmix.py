@@ -52,10 +52,10 @@ def Aug(data, labels):
     prob=1.0
     num_class = 10
 
-    aug_data = data
+    aug_data = data.clone()
     aug_labels = labels
 
-    for i, img in enumerate(data):
+    for i, img in enumerate(data.clone()):
             lb_onehot = labels[i]
             r = np.random.rand(1)
             if beta <= 0 or r > prob:
@@ -65,7 +65,11 @@ def Aug(data, labels):
             lam = np.random.beta(beta, beta)
 
             shuffle = torch.randperm(data.size(0))[0].to(data.device)
-            img2, lb2_onehot = data[shuffle], labels[shuffle]
+            while shuffle == i:
+                shuffle = torch.randperm(data.size(0))[0].to(data.device)
+                
+            
+            img2, lb2_onehot = data[shuffle].clone(), labels[shuffle].clone()
             
             bbx1, bby1, bbx2, bby2 = rand_bbox(img.size(), lam)
             img[:, bbx1:bbx2, bby1:bby2] = img2[:, bbx1:bbx2, bby1:bby2]

@@ -20,6 +20,7 @@ def Aug(data,labels):
     
     #torch.manual_seed(seed)
     prob = torch.rand(1)
+    data = data/255
     aug_data = data
     
     for i in range(len(prob)):
@@ -34,6 +35,7 @@ def Aug(data,labels):
             temp = F.adjust_brightness(data, brightness_factor=torch.FloatTensor(1,).uniform_(0.5, 1.5))
             aug_data = torch.cat((aug_data,F.adjust_contrast(temp, contrast_factor=torch.FloatTensor(1,).uniform_(0.5, 1.5))))    
     
+    aug_data = aug_data*255
     aug_labels = torch.cat((labels,labels))
     
     return aug_data,aug_labels
