@@ -192,7 +192,7 @@ class ModelClass(nn.Module):
         """
         Utility function which converts given DataLoader's Dataset into TensorDataset
         """
-        x, y = torch.tensor(dataloader.dataset.data), torch.tensor(dataloader.dataset.targets)
+        x, y = torch.tensor(dataloader.dataset.data, dtype=torch.float32), torch.tensor(dataloader.dataset.targets)
         x = x.swapaxes(1, 3)
         return TensorDataset(x, y)
 
