@@ -164,7 +164,7 @@ class ModelClass(nn.Module):
             
             #Confusion Matrix #Eval 4
             labels, predictions = self.confusion_matrix(testset)
-            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions, y_true=labels, class_names=classes)})
+            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions.cpu().numpy(), y_true=labels.cpu().numpy(), class_names=classes)})
 
     @torch.no_grad()
     def per_class_accuracy(self, dataloader):
@@ -193,7 +193,8 @@ class ModelClass(nn.Module):
         Utility function which converts given DataLoader's Dataset into TensorDataset
         """
         x, y = torch.tensor(dataloader.dataset.data, dtype=torch.float32), torch.tensor(dataloader.dataset.targets)
-        x = x.swapaxes(1, 3)
+        x = x.swapaxes(2, 3)
+        x = x.swapaxes(1, 2)
         return TensorDataset(x, y)
 
     @torch.no_grad()
