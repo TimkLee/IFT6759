@@ -150,18 +150,15 @@ class ModelClass(nn.Module):
             tbl.add_data(*accuracies)
             wandb.log({"Per class Accuracy": tbl})
 
-            #Extraction of Dataset from Dataloader and convertion into TensorDataset for Eval3 and Eval 4
-            testset = self.tensor_dataset(test_loader)
-
             #K-hardest examples #Eval 3
-            highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
+            highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(test_loader)
             #print("eval:", predictions)
             wandb.log({"high-loss-examples":
                     [wandb.Image(hard_example, caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
                         for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
             
             #Confusion Matrix #Eval 4
-            labels, predictions = self.confusion_matrix(testset)
+            labels, predictions = self.confusion_matrix(test_loader)
             # print("conf:", labels)
             # print("conf:", predictions)
             wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions, y_true=labels, class_names=classes)})
@@ -188,69 +185,67 @@ class ModelClass(nn.Module):
 
         return correct_pred, total_pred
 
-    def tensor_dataset(self, dataloader):
-        """
-        Utility function which converts given DataLoader's Dataset into TensorDataset
-        """
-        x, y = torch.tensor(dataloader.dataset.data, dtype=torch.float32), torch.tensor(dataloader.dataset.targets)
-        x = x.swapaxes(2, 3)
-        x = x.swapaxes(1, 2)
-        return TensorDataset(x, y)
 
     @torch.no_grad()
-    def get_hardest_k_examples(self, dataset, k=32):
+    def get_hardest_k_examples(self, dataloader, k=32):
         """
-        Finds the K-Hardest Examples fromt the given TensorDataset
-        NB: Please pass the dataloader into the tensor_dataset function to get the appropriate TensorDataset
+        Finds the K-Hardest Examples fromt the given DataLoader
         """
-        loader = DataLoader(dataset, batch_size=1, shuffle=False)
+       
+        batch_size= dataloader.batch_size #useless now
 
-        losses = None
-        predictions = None
+        losses = torch.Tensor([])
+        predictions = torch.Tensor([])
 
         self.eval()
-        for data, targets in loader:
+        for data, targets in dataloader:
             data, targets = data.to(self.device), targets.to(self.device)
             outputs = self.forward(data)
-            loss = self.criterion(outputs, targets)
+            loss = F.cross_entropy(outputs, targets,reduction='none')
             pred = outputs.argmax(dim=1, keepdim=True)
-
             if losses is None:
-                losses = loss.view((1, 1))
-                predictions = pred
+                losses = loss.view((loss.shape[0], 1)).cpu()
+                predictions = pred.cpu()
             else:
-                losses = torch.cat((losses, loss.view((1, 1))), dim=0)
-                predictions = torch.cat((predictions, pred), dim=0)
+                losses = torch.cat((losses, loss.view((loss.shape[0], 1)).cpu()), dim=0)
+                predictions = torch.cat((predictions, pred.cpu()), dim=0)
 
         argsort_loss = torch.argsort(losses, dim=0)
 
         highest_k_losses = losses[argsort_loss[-k:]]
-        hardest_k_examples = dataset[argsort_loss[-k:]][0]
-        true_labels = dataset[argsort_loss[-k:]][1]
+
+        #converting to printable image output
+        d = torch.Tensor(dataloader.dataset.data).to(self.device)
+        d = d.swapaxes(2, 3)
+        d = d.swapaxes(1, 2)
+
+
+        hardest_k_examples = d[argsort_loss[-k:]] 
+        l = torch.Tensor(dataloader.dataset.targets).to(self.device)
+        true_labels = l[argsort_loss[-k:]]
         #print("fn:", predictions)
         predictions = predictions[argsort_loss[-k:]]
 
         return highest_k_losses, hardest_k_examples, true_labels, predictions
 
     @torch.no_grad()
-    def confusion_matrix(self, dataset):
+    def confusion_matrix(self, dataloader):
         """
-        Returns the Class Predictions, True Predictions and Classnames for given TensorDataset
-        NB: Please pass the dataloader into the tensor_dataset function to get the appropriate TensorDataset
+        Returns the Class Predictions, True Predictions and Classnames for given DataLoader
         """
-        loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-        predictions = []
-        labels = []
+        predictions = np.array([])
+        labels = np.array([])
 
         self.eval()
-        for data, targets in loader:
+        for data, targets in dataloader:
             data, targets = data.to(self.device), targets.to(self.device)
             outputs = self.forward(data)
+            #outputs = F.softmax()
             pred = outputs.argmax(dim=1)
 
-            labels.append(targets.cpu().item())
-            predictions.append(pred.cpu().item())
+            labels = np.append(labels,targets.cpu().tolist())
+            predictions = np.append(predictions,pred.cpu().tolist())
 
         return labels, predictions
     
