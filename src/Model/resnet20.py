@@ -165,6 +165,8 @@ class ModelClass(nn.Module):
             
             #Confusion Matrix #Eval 4
             labels, predictions = self.confusion_matrix(testset)
+            print("conf:", labels)
+            print("conf:", predictions)
             wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions.cpu().tolist(), y_true=labels.cpu().tolist(), class_names=classes)})
 
     @torch.no_grad()
@@ -193,7 +195,7 @@ class ModelClass(nn.Module):
         """
         Utility function which converts given DataLoader's Dataset into TensorDataset
         """
-        x, y = torch.tensor(dataloader.dataset.data, dtype=torch.float32), torch.tensor(dataloader.dataset.targets)
+        x, y = torch.tensor(dataloader.dataset.data, dtype=torch.float32), torch.tensor(dataloader.dataset.targets, dtype=torch.float32)
         x = x.swapaxes(2, 3)
         x = x.swapaxes(1, 2)
         return TensorDataset(x, y)
