@@ -1,5 +1,6 @@
 ---
 # "super" - supervised learning, "semi" - semi supervised learning, "shot" - few shot learning
+num: 03
 task: "super"
 
 data: "cifar10"
