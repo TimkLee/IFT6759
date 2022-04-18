@@ -75,13 +75,10 @@ class ModelClass(nn.Module):
         out = self.fc(out)
         return out
 
-
-    
-    #def train_sup_up(self, epoch, dataloader, optimizer, criterion):
     def train_sup_up(self, data, target):
         """
         TRAIN LOOP FOR SUPERVISED/SEMI-SUPERVISED LEARNING
-        Train the model with the given device, train_loader for given epochs. Results propogated to WANDB for visualization after batch_log_intervals and end of epoch
+        Train the model with the given batched data sample and targets.
         """
         
         #self.train()
@@ -147,7 +144,7 @@ class ModelClass(nn.Module):
                 accuracy = 100. * correct_count / total_pred[classname]
                 columns.append(classname)
                 accuracies.append(accuracy)
-                print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
+                #print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
             #print(columns, accuracies)
             tbl = wandb.Table(columns=columns)
             tbl.add_data(*accuracies)
@@ -165,8 +162,8 @@ class ModelClass(nn.Module):
             
             #Confusion Matrix #Eval 4
             labels, predictions = self.confusion_matrix(testset)
-            print("conf:", labels)
-            print("conf:", predictions)
+            # print("conf:", labels)
+            # print("conf:", predictions)
             wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions, y_true=labels, class_names=classes)})
 
     @torch.no_grad()

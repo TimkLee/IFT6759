@@ -79,38 +79,21 @@ class ModelClass(nn.Module):
 		x = x.flatten(start_dim=1)
 		return x
 
-	def train_sup_up(self, data, targets):
-		"""
-		TRAIN LOOP FOR SUPERVISED/SEMI-SUPERVISED LEARNING
-		Train the model with the given device, train_loader for given epochs. Results propogated to WANDB for visualization after batch_log_intervals and end of epoch
-		"""
-		#data, targets = data.to(self.device), targets.to(self.device)
-		self.optimizer.zero_grad()
-		outputs = self.forward(data)
-		loss = self.criterion(outputs, targets)
-		loss.backward()
-		self.optimizer.step()
-
-		#example_ct += len(data)
-
-		# if batch_idx % batch_log_interval == 0:
-		# 	#Logging into WANDB
-		# 	print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(data), len(train_loader.dataset), 100. * batch_idx / len(train_loader), loss.item()))
-
-		# 	loss = float(loss)
-		# 	wandb.log({"epoch": epoch, "train/loss": loss}, step=example_ct)
-		# 	print(f"Loss after " + str(example_ct).zfill(5) + f" examples: {loss:.3f}")
-
-	# #Logging into WANDB
-	# train_loss, train_accuracy = self.test(train_loader)
-	# valid_loss, valid_accuracy = self.test(valid_loader)
-	# train_loss, train_accuracy, valid_loss, valid_accuracy = float(train_loss), float(train_accuracy), float(valid_loss), float(valid_accuracy)
-	# wandb.log({"epoch": epoch, "train/loss": train_loss, "train/accuracy": train_accuracy, "validation/loss": valid_loss, "validation/accuracy": valid_accuracy}, step=example_ct)	
-	# print(f"Train Loss/accuracy after " + str(example_ct).zfill(5) + f" examples: {train_loss:.3f}/{train_accuracy:.3f}")
-	# print(f"Validation Loss/accuracy after " + str(example_ct).zfill(5) + f" examples: {valid_loss:.3f}/{valid_accuracy:.3f}")
-		      
-		#torch.save(self.state_dict(), "trained_model.pth")
-		return loss
+    def train_sup_up(self, data, target):
+        """
+        TRAIN LOOP FOR SUPERVISED/SEMI-SUPERVISED LEARNING
+        Train the model with the given batched data sample and targets.
+        """
+        
+        #self.train()
+        self.optimizer.zero_grad()
+        y_pred = self.forward(data)
+        loss = self.criterion(y_pred,target)
+        loss.backward()
+        self.optimizer.step()
+        #acc = (torch.argmax(y_pred, dim=1) == torch.argmax(target, dim=1)).float().sum()/target.shape[0]      
+        #print(loss.item())
+        return loss.item()
 
 	def train_shot(self, epoch, dataloader, optimizer, criterion):
 		"""
@@ -119,7 +102,6 @@ class ModelClass(nn.Module):
 		"""
 		#TODO
 		pass
-
 
 	@torch.no_grad()
 	def test(self, dataloader):
@@ -154,30 +136,37 @@ class ModelClass(nn.Module):
 			#Test Loss and Accuracy #Eval 1
 			test_loss, test_accuracy = self.test(test_loader)
 			run.summary.update({"test/loss": test_loss, "test/accuracy": test_accuracy})
+			wandb.log({"test/loss": test_loss, "test/accuracy": test_accuracy})
 			
 			#Per Class Accuracy #Eval 2
 			correct_pred, total_pred = self.per_class_accuracy(test_loader) 
 			columns = ["Configs"]
-			accuracies = ["Config1"] #Replace it with name of run which would be equal to Config1 and so on.
+			accuracies = [name] #Replace it with name of run which would be equal to Config1 and so on.
 
 			for classname, correct_count in correct_pred.items():
 				accuracy = 100. * correct_count / total_pred[classname]
 				columns.append(classname)
 				accuracies.append(accuracy)
-				print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
-			wandb.log({"Per class Accuracy": wandb.Table(columns=columns, data=accuracies)})
+				#print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
+			#print(columns, accuracies)
+			tbl = wandb.Table(columns=columns)
+			tbl.add_data(*accuracies)
+			wandb.log({"Per class Accuracy": tbl})
 
 			#Extraction of Dataset from Dataloader and convertion into TensorDataset for Eval3 and Eval 4
 			testset = self.tensor_dataset(test_loader)
 
 			#K-hardest examples #Eval 3
 			highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
+			#print("eval:", predictions)
 			wandb.log({"high-loss-examples":
-			           [wandb.Image(hard_example, caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
-			            for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
+					[wandb.Image(hard_example, caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
+						for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
 			
 			#Confusion Matrix #Eval 4
 			labels, predictions = self.confusion_matrix(testset)
+			# print("conf:", labels)
+			# print("conf:", predictions)
 			wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions, y_true=labels, class_names=classes)})
 
 	@torch.no_grad()
@@ -206,7 +195,9 @@ class ModelClass(nn.Module):
 		"""
 		Utility function which converts given DataLoader's Dataset into TensorDataset
 		"""
-		x, y = torch.tensor(dataloader.dataset.data), torch.tensor(dataloader.dataset.targets)
+		x, y = torch.tensor(dataloader.dataset.data, dtype=torch.float32), torch.tensor(dataloader.dataset.targets)
+		x = x.swapaxes(2, 3)
+		x = x.swapaxes(1, 2)
 		return TensorDataset(x, y)
 
 	@torch.no_grad()
@@ -239,6 +230,7 @@ class ModelClass(nn.Module):
 		highest_k_losses = losses[argsort_loss[-k:]]
 		hardest_k_examples = dataset[argsort_loss[-k:]][0]
 		true_labels = dataset[argsort_loss[-k:]][1]
+		#print("fn:", predictions)
 		predictions = predictions[argsort_loss[-k:]]
 
 		return highest_k_losses, hardest_k_examples, true_labels, predictions
@@ -251,20 +243,20 @@ class ModelClass(nn.Module):
 		"""
 		loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-		predictions = None
-		labels = None
+		predictions = []
+		labels = []
 
 		self.eval()
 		for data, targets in loader:
 			data, targets = data.to(self.device), targets.to(self.device)
 			outputs = self.forward(data)
-			pred = outputs.argmax(dim=1, keepdim=True)
+			pred = outputs.argmax(dim=1)
 
-			if labels is None:
-				labels = targets
-				predictions = pred
-			else:
-				labels = torch.cat((labels, targets), dim=0)
-				predictions = torch.cat((predictions, pred), dim=0)
+			labels.append(targets.cpu().item())
+			predictions.append(pred.cpu().item())
 
 		return labels, predictions
+	
+	def update_lr(self, lr):    
+		for param_group in self.optimizer.param_groups:
+			param_group['lr'] = lr
