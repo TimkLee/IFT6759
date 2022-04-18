@@ -148,8 +148,10 @@ class ModelClass(nn.Module):
                 columns.append(classname)
                 accuracies.append(accuracy)
                 print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
-            print(columns, accuracies)
-            wandb.log({"Per class Accuracy": wandb.Table(columns=columns, rows=accuracies)})
+            #print(columns, accuracies)
+            tbl = wandb.Table(columns=columns)
+            [tbl.add_data(column, accuracy) for column, accuracy in zip(columns, accuracies)]
+            wandb.log({"Per class Accuracy": tbl})
 
             #Extraction of Dataset from Dataloader and convertion into TensorDataset for Eval3 and Eval 4
             testset = self.tensor_dataset(test_loader)
