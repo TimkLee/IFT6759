@@ -228,7 +228,7 @@ class ModelClass(nn.Module):
         argsort_loss = torch.argsort(losses, dim=0)
 
         highest_k_losses = losses[argsort_loss[-k:]]
-        hardest_k_examples, true_labels = loader.dataset
+        hardest_k_examples, true_labels = loader.dataset.data, loader.dataset.targets
         hardest_k_examples, true_labels = hardest_k_examples.cpu(), true_labels.cpu()
         hardest_k_examples, true_labels = hardest_k_examples[argsort_loss[-k:]], true_labels[argsort_loss[-k:]]
         #true_labels = loader.dataset[argsort_loss[-k:]][1]
