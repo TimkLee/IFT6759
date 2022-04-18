@@ -216,6 +216,7 @@ class ModelClass(nn.Module):
             loss = self.criterion(outputs, targets)
             pred = outputs.argmax(dim=1, keepdim=True)
             print('Pred:', pred)
+            print('Label', targets)
             if losses is None:
                 losses = loss.view((1, 1))
                 predictions = pred
