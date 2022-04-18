@@ -243,8 +243,8 @@ class ModelClass(nn.Module):
         """
         loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-        predictions = None
-        labels = None
+        predictions = []
+        labels = []
 
         self.eval()
         for data, targets in loader:
@@ -252,12 +252,8 @@ class ModelClass(nn.Module):
             outputs = self.forward(data)
             pred = outputs.argmax(dim=1)
 
-            if labels is None:
-                labels = targets
-                predictions = pred
-            else:
-                labels = torch.cat((labels, targets), dim=0)
-                predictions = torch.cat((predictions, pred), dim=0)
+            labels.append(targets)
+            predictions.append(pred)
 
         return labels, predictions
     
