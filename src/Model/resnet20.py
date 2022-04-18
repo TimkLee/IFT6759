@@ -158,13 +158,14 @@ class ModelClass(nn.Module):
 
             #K-hardest examples #Eval 3
             highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
+            print("eval:", predictions)
             wandb.log({"high-loss-examples":
                     [wandb.Image(hard_example, caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
                         for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
             
             #Confusion Matrix #Eval 4
             labels, predictions = self.confusion_matrix(testset)
-            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions.cpu().numpy(), y_true=labels.cpu().numpy(), class_names=classes)})
+            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=*predictions.cpu(), y_true=*labels.cpu(), class_names=classes)})
 
     @torch.no_grad()
     def per_class_accuracy(self, dataloader):
@@ -227,6 +228,7 @@ class ModelClass(nn.Module):
         highest_k_losses = losses[argsort_loss[-k:]]
         hardest_k_examples = dataset[argsort_loss[-k:]][0]
         true_labels = dataset[argsort_loss[-k:]][1]
+        print("fn:", predictions)
         predictions = predictions[argsort_loss[-k:]]
 
         return highest_k_losses, hardest_k_examples, true_labels, predictions
