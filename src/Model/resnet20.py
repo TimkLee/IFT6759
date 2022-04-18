@@ -212,9 +212,10 @@ class ModelClass(nn.Module):
         for data, targets in loader:
             data, targets = data.to(self.device), targets.to(self.device)
             outputs = self.forward(data)
+            print('Outputs:', outputs)
             loss = self.criterion(outputs, targets)
             pred = outputs.argmax(dim=1, keepdim=True)
-
+            print('Pred:', pred)
             if losses is None:
                 losses = loss.view((1, 1))
                 predictions = pred
