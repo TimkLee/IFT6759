@@ -217,7 +217,7 @@ class ModelClass(nn.Module):
             pred = outputs.argmax(dim=1, keepdim=True)
             print('Pred:', pred)
             print('Label', targets)
-            data, targets = data.cpu(), targets.cpu()
+            #data, targets = data.cpu(), targets.cpu()
             if losses is None:
                 losses = loss.view((1, 1))
                 predictions = pred
@@ -228,8 +228,10 @@ class ModelClass(nn.Module):
         argsort_loss = torch.argsort(losses, dim=0)
 
         highest_k_losses = losses[argsort_loss[-k:]]
-        hardest_k_examples = loader.dataset[argsort_loss[-k:]][0]
-        true_labels = loader.dataset[argsort_loss[-k:]][1]
+        hardest_k_examples, true_labels = loader.dataset
+        hardest_k_examples, true_labels = hardest_k_examples.cpu(), true_labels.cpu()
+        hardest_k_examples, true_labels = hardest_k_examples[argsort_loss[-k:]], true_labels[argsort_loss[-k:]]
+        #true_labels = loader.dataset[argsort_loss[-k:]][1]
         #print("fn:", predictions)
         predictions = predictions[argsort_loss[-k:]]
 
