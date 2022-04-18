@@ -6,6 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
 
+from torch.utils.data import DataLoader, TensorDataset
+import wandb
+
 class ModelClass(nn.Module):
 
 
@@ -14,7 +17,7 @@ class ModelClass(nn.Module):
         Reference : https://pytorch-tutorial.readthedocs.io/en/latest/tutorial/chapter03_intermediate/3_2_2_cnn_resnet_cifar10/
         """
         super(ModelClass,self).__init__()
-               
+            
         self.in_channels = 16
         self.conv = conv3x3(3, 16)
         self.bn = nn.BatchNorm2d(16)
@@ -68,28 +71,25 @@ class ModelClass(nn.Module):
         out = out.view(out.size(0), -1)
         out = self.fc(out)
         return out
-  
+
 
     
     #def train_sup_up(self, epoch, dataloader, optimizer, criterion):
     def train_sup_up(self, data, target):
         """
-        TRAIN LOOP FOR SUPERVISED/UNSUPERVISED LEARNING
-        Train the model with the given criterion, optimizer, dataloader for given epochs. Results propogated to WANDB for visualization
+        TRAIN LOOP FOR SUPERVISED/SEMI-SUPERVISED LEARNING
+        Train the model with the given device, train_loader for given epochs. Results propogated to WANDB for visualization after batch_log_intervals and end of epoch
         """
-        #TODO
         
-        self.train()
+        #self.train()
         self.optimizer.zero_grad()
         y_pred = self.forward(data)
-
         loss = self.criterion(y_pred,target)
         loss.backward()
         self.optimizer.step()
-        
-        acc = (torch.argmax(y_pred, dim=1) == torch.argmax(target, dim=1)).float().sum()/target.shape[0]      
-
-        return acc, loss
+        #acc = (torch.argmax(y_pred, dim=1) == torch.argmax(target, dim=1)).float().sum()/target.shape[0]      
+        print(loss.item())
+        return loss.item()
 
     
     def train_shot(self, epoch, dataloader, optimizer, criterion):
@@ -99,32 +99,158 @@ class ModelClass(nn.Module):
         """
         #TODO
         pass
+  
+    @torch.no_grad()
+    def test(self, dataloader):
+        """
+        Calculate the Loss and Accuracy of the model on given dataloader
+        """
+        self.eval()
+        loss = 0
+        correct = 0
+        criterion = nn.CrossEntropyLoss(reduction="sum") #To sum up Batch loss 
+        for data, targets in dataloader:
+            data, targets = data.to(self.device), targets.to(self.device)
+            outputs = self.forward(data)
+            loss += criterion(outputs, targets).item()
+            pred = outputs.argmax(dim=1, keepdim=True)
+            correct += pred.eq(targets.view_as(pred)).sum()
 
+        loss /= len(dataloader.dataset)
+        accuracy = 100. * correct / len(dataloader.dataset)
 
-    #@torch.no_grad()
-    def evaluation(self, data, target):
+        return loss, accuracy
+
+    @torch.no_grad()
+    def evaluation(self, test_loader, project, entity, name):
         """
         Evaluate the model for various evaluation metrics. Results propogated to WANDB for visualization 
         """
-        #TODO
-        self.eval()
-        with torch.no_grad():
+        with wandb.init(project=project, entity=entity, job_type="report", name=name) as run:
+            #Class Names
+            classes = tuple(test_loader.dataset.classes)
 
-            y_pred = self.forward(data)
-
-            loss = self.criterion(y_pred,target)
+            #Test Loss and Accuracy #Eval 1
+            test_loss, test_accuracy = self.test(test_loader)
+            run.summary.update({"test/loss": test_loss, "test/accuracy": test_accuracy})
             
-            acc = (torch.argmax(y_pred, dim=1) == torch.argmax(target, dim=1)).float().sum()/target.shape[0] 
-        
-        return acc, loss
+            #Per Class Accuracy #Eval 2
+            correct_pred, total_pred = self.per_class_accuracy(test_loader) 
+            columns = ["Configs"]
+            accuracies = ["Config1"] #Replace it with name of run which would be equal to Config1 and so on.
 
+            for classname, correct_count in correct_pred.items():
+                accuracy = 100. * correct_count / total_pred[classname]
+                columns.append(classname)
+                accuracies.append(accuracy)
+                print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
+            wandb.log({"Per class Accuracy": wandb.Table(columns=columns, data=accuracies)})
 
+            #Extraction of Dataset from Dataloader and convertion into TensorDataset for Eval3 and Eval 4
+            testset = self.tensor_dataset(test_loader)
 
+            #K-hardest examples #Eval 3
+            highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
+            wandb.log({"high-loss-examples":
+                    [wandb.Image(hard_example, caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
+                        for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
+            
+            #Confusion Matrix #Eval 4
+            labels, predictions = self.confusion_matrix(testset)
+            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions, y_true=labels, class_names=classes)})
+
+    @torch.no_grad()
+    def per_class_accuracy(self, dataloader):
+        """
+        Calculate Per Class Accuracy of the model on given dataloader
+        """
+        classes = tuple(dataloader.dataset.classes)
+        correct_pred = {classname: 0 for classname in classes}
+        total_pred = {classname: 0 for classname in classes}
+
+        self.eval()
+        for data, targets in dataloader:
+            data, targets = data.to(self.device), targets.to(self.device)
+            outputs = self.forward(data)
+            _, predictions = torch.max(outputs, dim=1)
+            #Collect Correct Predictions for each class
+            for target, prediction in zip(targets, predictions):
+                if target == prediction:
+                    correct_pred[classes[target]] += 1
+                total_pred[classes[target]] += 1
+
+        return correct_pred, total_pred
+
+    def tensor_dataset(self, dataloader):
+        """
+        Utility function which converts given DataLoader's Dataset into TensorDataset
+        """
+        x, y = torch.tensor(dataloader.dataset.data), torch.tensor(dataloader.dataset.targets)
+        return TensorDataset(x, y)
+
+    @torch.no_grad()
+    def get_hardest_k_examples(self, dataset, k=32):
+        """
+        Finds the K-Hardest Examples fromt the given TensorDataset
+        NB: Please pass the dataloader into the tensor_dataset function to get the appropriate TensorDataset
+        """
+        loader = DataLoader(dataset, batch_size=1, shuffle=False)
+
+        losses = None
+        predictions = None
+
+        self.eval()
+        for data, targets in loader:
+            data, targets = data.to(self.device), targets.to(self.device)
+            outputs = self.forward(data)
+            loss = self.criterion(outputs, targets)
+            pred = outputs.argmax(dim=1, keepdim=True)
+
+            if losses is None:
+                losses = loss.view((1, 1))
+                predictions = pred
+            else:
+                losses = torch.cat((losses, loss.view((1, 1))), dim=0)
+                predictions = torch.cat((predictions, pred), dim=0)
+
+        argsort_loss = torch.argsort(losses, dim=0)
+
+        highest_k_losses = losses[argsort_loss[-k:]]
+        hardest_k_examples = dataset[argsort_loss[-k:]][0]
+        true_labels = dataset[argsort_loss[-k:]][1]
+        predictions = predictions[argsort_loss[-k:]]
+
+        return highest_k_losses, hardest_k_examples, true_labels, predictions
+
+    @torch.no_grad()
+    def confusion_matrix(self, dataset):
+        """
+        Returns the Class Predictions, True Predictions and Classnames for given TensorDataset
+        NB: Please pass the dataloader into the tensor_dataset function to get the appropriate TensorDataset
+        """
+        loader = DataLoader(dataset, batch_size=1, shuffle=False)
+
+        predictions = None
+        labels = None
+
+        self.eval()
+        for data, targets in loader:
+            data, targets = data.to(self.device), targets.to(self.device)
+            outputs = self.forward(data)
+            pred = outputs.argmax(dim=1, keepdim=True)
+
+            if labels is None:
+                labels = targets
+                predictions = pred
+            else:
+                labels = torch.cat((labels, targets), dim=0)
+                predictions = torch.cat((predictions, pred), dim=0)
+
+        return labels, predictions
+    
     def update_lr(self, lr):    
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
-
-
 
 
 def conv3x3(in_channels, out_channels, stride=1):

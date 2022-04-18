@@ -79,43 +79,38 @@ class ModelClass(nn.Module):
 		x = x.flatten(start_dim=1)
 		return x
 
-	def train_sup_up(self, train_loader, valid_loader, epochs, batch_log_interval=25):
+	def train_sup_up(self, data, targets):
 		"""
 		TRAIN LOOP FOR SUPERVISED/SEMI-SUPERVISED LEARNING
 		Train the model with the given device, train_loader for given epochs. Results propogated to WANDB for visualization after batch_log_intervals and end of epoch
 		"""
-		with wandb.init(project="Supervised Learning", entity='ift6759-aiadlp', job_type="train") as run:
-			self.train()
-			example_ct = 0
-			for epoch in range(epochs): 
-				for batch_idx, (data, targets) in enumerate(train_loader):
-					data, targets = data.to(self.device), targets.to(self.device)
-					self.optimizer.zero_grad()
-					outputs = self.forward(data)
-					loss = self.criterion(outputs, targets)
-					loss.backward()
-					self.optimizer.step()
+		#data, targets = data.to(self.device), targets.to(self.device)
+		self.optimizer.zero_grad()
+		outputs = self.forward(data)
+		loss = self.criterion(outputs, targets)
+		loss.backward()
+		self.optimizer.step()
 
-					example_ct += len(data)
+		#example_ct += len(data)
 
-					if batch_idx % batch_log_interval == 0:
-						#Logging into WANDB
-						print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(data), len(train_loader.dataset), 100. * batch_idx / len(train_loader), loss.item()))
+		# if batch_idx % batch_log_interval == 0:
+		# 	#Logging into WANDB
+		# 	print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(data), len(train_loader.dataset), 100. * batch_idx / len(train_loader), loss.item()))
 
-						loss = float(loss)
-						wandb.log({"epoch": epoch, "train/loss": loss}, step=example_ct)
-						print(f"Loss after " + str(example_ct).zfill(5) + f" examples: {loss:.3f}")
+		# 	loss = float(loss)
+		# 	wandb.log({"epoch": epoch, "train/loss": loss}, step=example_ct)
+		# 	print(f"Loss after " + str(example_ct).zfill(5) + f" examples: {loss:.3f}")
 
-				#Logging into WANDB
-				train_loss, train_accuracy = self.test(train_loader)
-				valid_loss, valid_accuracy = self.test(valid_loader)
-				loss, accuracy = float(loss), float(accuracy)
-				wandb.log({"epoch": epoch, "train/loss": train_loss, "train/accuracy": train_accuracy, "validation/loss": valid_loss, "validation/accuracy": valid_accuracy}, step=example_ct)	
-				print(f"Train Loss/accuracy after " + str(example_ct).zfill(5) + f" examples: {train_loss:.3f}/{train_accuracy:.3f}")
-				print(f"Validation Loss/accuracy after " + str(example_ct).zfill(5) + f" examples: {valid_loss:.3f}/{valid_accuracy:.3f}")
+	# #Logging into WANDB
+	# train_loss, train_accuracy = self.test(train_loader)
+	# valid_loss, valid_accuracy = self.test(valid_loader)
+	# train_loss, train_accuracy, valid_loss, valid_accuracy = float(train_loss), float(train_accuracy), float(valid_loss), float(valid_accuracy)
+	# wandb.log({"epoch": epoch, "train/loss": train_loss, "train/accuracy": train_accuracy, "validation/loss": valid_loss, "validation/accuracy": valid_accuracy}, step=example_ct)	
+	# print(f"Train Loss/accuracy after " + str(example_ct).zfill(5) + f" examples: {train_loss:.3f}/{train_accuracy:.3f}")
+	# print(f"Validation Loss/accuracy after " + str(example_ct).zfill(5) + f" examples: {valid_loss:.3f}/{valid_accuracy:.3f}")
 		      
-		torch.save(self.state_dict(), "trained_model.pth")
-		#return acc, loss
+		#torch.save(self.state_dict(), "trained_model.pth")
+		return loss
 
 	def train_shot(self, epoch, dataloader, optimizer, criterion):
 		"""
@@ -148,11 +143,11 @@ class ModelClass(nn.Module):
 		return loss, accuracy
 
 	@torch.no_grad()
-	def evaluation(self, test_loader):
+	def evaluation(self, test_loader, project, entity, name):
 		"""
 		Evaluate the model for various evaluation metrics. Results propogated to WANDB for visualization 
 		"""
-		with wandb.init(project="Supervised Learning", entity='ift6759-aiadlp', job_type="report") as run:
+		with wandb.init(project=project, entity=entity, job_type="report", name=name) as run:
 			#Class Names
 			classes = tuple(test_loader.dataset.classes)
 
@@ -183,9 +178,7 @@ class ModelClass(nn.Module):
 			
 			#Confusion Matrix #Eval 4
 			labels, predictions = self.confusion_matrix(testset)
-			wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
-			                            preds=predictions, y_true=labels,
-			                            class_names=classes)})
+			wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions, y_true=labels, class_names=classes)})
 
 	@torch.no_grad()
 	def per_class_accuracy(self, dataloader):
