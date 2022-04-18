@@ -158,7 +158,7 @@ class ModelClass(nn.Module):
 
             #K-hardest examples #Eval 3
             highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
-            print("eval:", predictions)
+            #print("eval:", predictions)
             wandb.log({"high-loss-examples":
                     [wandb.Image(hard_example, caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
                         for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
@@ -230,7 +230,7 @@ class ModelClass(nn.Module):
         highest_k_losses = losses[argsort_loss[-k:]]
         hardest_k_examples = dataset[argsort_loss[-k:]][0]
         true_labels = dataset[argsort_loss[-k:]][1]
-        print("fn:", predictions)
+        #print("fn:", predictions)
         predictions = predictions[argsort_loss[-k:]]
 
         return highest_k_losses, hardest_k_examples, true_labels, predictions
