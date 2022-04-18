@@ -217,6 +217,7 @@ class ModelClass(nn.Module):
             pred = outputs.argmax(dim=1, keepdim=True)
             print('Pred:', pred)
             print('Label', targets)
+            data, targets = data.cpu(), targets.cpu()
             if losses is None:
                 losses = loss.view((1, 1))
                 predictions = pred
