@@ -20,20 +20,22 @@ def main(args):
         config = yaml.load(f, Loader=yaml.FullLoader)
     
     device = args.device
-    task = config["task"]
+    num = config['num'] if ('num' in config) else 0
+    task = config["task"] if ('task' in config) else 'super' 
+
     data_file = config["data"]
     model_file = config["model"]
-    augment_file = config["augment"]
-    augment_strength = config["aug_strength"]
+    augment_file = config["augment"] if ("augment" in config) else None 
+    augment_strength = config["aug_strength"] if ("aug_strength" in config) else None
     eval_file = config["eval"]
-    batch_size = config["batch_size"]
-    learn_rate = config["learning_rate"]
-    epoch = config["epoch"]
-    optimizer = config["optimizer"]
-    #momentum = config["momentum"]
-    weight_decay = config["weight_decay"]
-    seed = config["seed"]
-    epoch = config["epoch"]
+
+    batch_size = config["batch_size"] if ("batch_size" in config) else 64
+    learn_rate = config["learning_rate"] if ("learning_rate" in config) else 0.001
+    momentum = config["momentum"] if ("momentum" in config) else 0
+    epoch = config["epoch"] if ("epoch" in config) else 10
+    optimizer = config["optimizer"] if ("optimizer" in config) else "adam"
+    weight_decay = config["weight_decay"] if ("weight_decay" in config) else 0
+    seed = config["seed"] if ("weight_decay" in config) else 6942 
 
     
     
@@ -83,7 +85,7 @@ def main(args):
       train_tot_accs, valid_tot_accs = [], []
       train_tot_losses, valid_tot_losses = [], []
 
-      Model = ModelClass(optimizer=optimizer,lr=learn_rate,weight_decay=weight_decay)
+      Model = ModelClass(optimizer=optimizer,lr=learn_rate,weight_decay=weight_decay,momentum=momentum)
       Model = Model.to(device=device)
 
       for ep in range(epoch):
