@@ -250,7 +250,7 @@ class ModelClass(nn.Module):
         for data, targets in loader:
             data, targets = data.to(self.device), targets.to(self.device)
             outputs = self.forward(data)
-            pred = outputs.argmax(dim=1, keepdim=True)
+            pred = outputs.argmax(dim=1)
 
             if labels is None:
                 labels = targets
