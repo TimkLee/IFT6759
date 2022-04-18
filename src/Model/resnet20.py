@@ -136,6 +136,7 @@ class ModelClass(nn.Module):
             #Test Loss and Accuracy #Eval 1
             test_loss, test_accuracy = self.test(test_loader)
             run.summary.update({"test/loss": test_loss, "test/accuracy": test_accuracy})
+            wandb.log({"test/loss": test_loss, "test/accuracy": test_accuracy})
             
             #Per Class Accuracy #Eval 2
             correct_pred, total_pred = self.per_class_accuracy(test_loader) 
