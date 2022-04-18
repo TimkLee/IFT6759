@@ -193,6 +193,7 @@ class ModelClass(nn.Module):
         Utility function which converts given DataLoader's Dataset into TensorDataset
         """
         x, y = torch.tensor(dataloader.dataset.data), torch.tensor(dataloader.dataset.targets)
+        x = x.swapaxes(1, 3)
         return TensorDataset(x, y)
 
     @torch.no_grad()
