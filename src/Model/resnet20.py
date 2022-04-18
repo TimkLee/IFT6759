@@ -140,13 +140,14 @@ class ModelClass(nn.Module):
             #Per Class Accuracy #Eval 2
             correct_pred, total_pred = self.per_class_accuracy(test_loader) 
             columns = ["Configs"]
-            accuracies = ["Config1"] #Replace it with name of run which would be equal to Config1 and so on.
+            accuracies = [name] #Replace it with name of run which would be equal to Config1 and so on.
 
             for classname, correct_count in correct_pred.items():
                 accuracy = 100. * correct_count / total_pred[classname]
                 columns.append(classname)
                 accuracies.append(accuracy)
                 print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
+            print(columns, accuracies)
             wandb.log({"Per class Accuracy": wandb.Table(columns=columns, data=accuracies)})
 
             #Extraction of Dataset from Dataloader and convertion into TensorDataset for Eval3 and Eval 4
