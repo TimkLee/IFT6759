@@ -29,7 +29,7 @@ class ModelClass(nn.Module):
         self.layer2 = self.make_layer(ResidualBlock, out_channels=32, blocks = 3, stride=2)
         self.layer3 = self.make_layer(ResidualBlock, out_channels=64, blocks = 3, stride=2)
         self.avg_pool = nn.AvgPool2d(8)
-        self.fc = nn.Linear(64, num_classes)        
+        self.fc = nn.Linear(64, self.num_classes)        
         
         if optimizer == "adam":
             self.optimizer = optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
