@@ -12,12 +12,15 @@ import wandb
 class ModelClass(nn.Module):
 
 
-    def __init__(self, num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, momentum = 0.9,criterion = "CrossEntropyLoss"):
+    def __init__(self, device, num_classes=10, optimizer = "adam", lr=0.003, weight_decay = 0.01, momentum = 0.9,criterion = "CrossEntropyLoss"):
         """
         Reference : https://pytorch-tutorial.readthedocs.io/en/latest/tutorial/chapter03_intermediate/3_2_2_cnn_resnet_cifar10/
         """
         super(ModelClass,self).__init__()
-            
+        
+        self.num_classes = num_classes
+        self.device = device
+
         self.in_channels = 16
         self.conv = conv3x3(3, 16)
         self.bn = nn.BatchNorm2d(16)
@@ -88,7 +91,7 @@ class ModelClass(nn.Module):
         loss.backward()
         self.optimizer.step()
         #acc = (torch.argmax(y_pred, dim=1) == torch.argmax(target, dim=1)).float().sum()/target.shape[0]      
-        print(loss.item())
+        #print(loss.item())
         return loss.item()
 
     
