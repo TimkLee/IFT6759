@@ -154,14 +154,14 @@ class ModelClass(nn.Module):
             testset = self.tensor_dataset(test_loader)
 
             #K-hardest examples #Eval 3
-            highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
+            highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(test_loader)
             #print("eval:", predictions)
             wandb.log({"high-loss-examples":
                     [wandb.Image(hard_example, caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
                         for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
             
             #Confusion Matrix #Eval 4
-            labels, predictions = self.confusion_matrix(testset)
+            labels, predictions = self.confusion_matrix(test_loader)
             # print("conf:", labels)
             # print("conf:", predictions)
             wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions, y_true=labels, class_names=classes)})
@@ -198,12 +198,12 @@ class ModelClass(nn.Module):
         return TensorDataset(x, y)
 
     @torch.no_grad()
-    def get_hardest_k_examples(self, dataset, k=32):
+    def get_hardest_k_examples(self, dataloader, k=32):
         """
         Finds the K-Hardest Examples fromt the given TensorDataset
         NB: Please pass the dataloader into the tensor_dataset function to get the appropriate TensorDataset
         """
-        loader = DataLoader(dataset, batch_size=1, shuffle=False)
+        loader = DataLoader(dataloader.dataset, batch_size=1, shuffle=False)
 
         losses = None
         predictions = None
@@ -235,12 +235,12 @@ class ModelClass(nn.Module):
         return highest_k_losses, hardest_k_examples, true_labels, predictions
 
     @torch.no_grad()
-    def confusion_matrix(self, dataset):
+    def confusion_matrix(self, dataloader):
         """
         Returns the Class Predictions, True Predictions and Classnames for given TensorDataset
         NB: Please pass the dataloader into the tensor_dataset function to get the appropriate TensorDataset
         """
-        loader = DataLoader(dataset, batch_size=1, shuffle=False)
+        loader = DataLoader(dataloader.dataset, batch_size=1, shuffle=False)
 
         predictions = []
         labels = []
