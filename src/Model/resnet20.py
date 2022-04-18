@@ -159,7 +159,7 @@ class ModelClass(nn.Module):
             #K-hardest examples #Eval 3
             highest_losses, hardest_examples, true_labels, predictions = self.get_hardest_k_examples(testset)
             wandb.log({"high-loss-examples":
-                    [wandb.Image(hard_example, caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
+                    [wandb.Image(hard_example.swapaxes(1, 3), caption= "Pred: " + str(classes[int(pred)]) + ", Label: " +  str(classes[int(label)]))
                         for hard_example, pred, label in zip(hardest_examples, predictions, true_labels)]})
             
             #Confusion Matrix #Eval 4
