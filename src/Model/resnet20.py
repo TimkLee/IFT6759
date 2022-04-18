@@ -167,7 +167,7 @@ class ModelClass(nn.Module):
             labels, predictions = self.confusion_matrix(testset)
             print("conf:", labels)
             print("conf:", predictions)
-            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions.cpu().tolist(), y_true=labels.cpu().tolist(), class_names=classes)})
+            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None, preds=predictions.cpu(), y_true=labels.cpu(), class_names=classes)})
 
     @torch.no_grad()
     def per_class_accuracy(self, dataloader):
