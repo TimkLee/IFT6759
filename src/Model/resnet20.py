@@ -252,8 +252,8 @@ class ModelClass(nn.Module):
             outputs = self.forward(data)
             pred = outputs.argmax(dim=1)
 
-            labels.append(targets)
-            predictions.append(pred)
+            labels.append(targets.cpu().item())
+            predictions.append(pred.cpu().item())
 
         return labels, predictions
     
