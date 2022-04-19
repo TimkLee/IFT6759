@@ -196,9 +196,7 @@ class ModelClass(nn.Module):
 	    """
 	    Finds the K-Hardest Examples fromt the given DataLoader
 	    """
-	   
-	    batch_size= dataloader.batch_size #useless now
-
+	    
 	    losses = torch.Tensor([])
 	    predictions = torch.Tensor([])
 

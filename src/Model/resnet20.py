@@ -192,8 +192,6 @@ class ModelClass(nn.Module):
         Finds the K-Hardest Examples fromt the given DataLoader
         """
        
-        batch_size= dataloader.batch_size #useless now
-
         losses = torch.Tensor([])
         predictions = torch.Tensor([])
 
@@ -203,6 +201,7 @@ class ModelClass(nn.Module):
             outputs = self.forward(data)
             loss = F.cross_entropy(outputs, targets,reduction='none')
             pred = outputs.argmax(dim=1, keepdim=True)
+            
             if losses is None:
                 losses = loss.view((loss.shape[0], 1)).cpu()
                 predictions = pred.cpu()
