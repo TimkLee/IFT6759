@@ -13,11 +13,12 @@ class ModelClass(nn.Module):
 	All CNN model C 
 	ref : https://arxiv.org/pdf/1412.6806.pdf check table 2 (we replace max pooling from table 1 with conv layers with stride=2 to get AllCNN correctly)
 	"""
-	def __init__(self, device, num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, criterion = "CrossEntropyLoss",momentum=0):
+	def __init__(self, device, num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, criterion = "CrossEntropyLoss",momentum=0,dropout=True):
 		super(ModelClass, self).__init__()
 		
 		self.num_classes = num_classes
 		self.device = device
+		self.dropout=dropout
 
 		#Convolutional Layers:
 		#Block1
@@ -43,6 +44,11 @@ class ModelClass(nn.Module):
 		#Useful Reference: https://discuss.pytorch.org/t/global-average-pooling-in-pytorch/6721/12
 		self.gap = nn.AvgPool2d(kernel_size=(6, 6))
 
+		#add dropout
+		if self.dropout:
+			self.dropout_input = nn.Dropout(p=0.2)
+			self.dropout_block = nn.Dropout(p=0.5)
+
 		#hyper parameters :
 
 		if optimizer == "adam":
@@ -61,15 +67,27 @@ class ModelClass(nn.Module):
 		"""
 		input : x of shape (batch size, channel , height, width)
 		output after forward of dimension (batch_size , num_class)
+		if dropout we applied dropout of 20% on the input data and 50% after each maxpool layer (paragraph section 3.2.1 of https://arxiv.org/pdf/1412.6806.pdf)
 		"""
+
+		#input dropout 
+		if self.dropout:
+			x = self.dropout_input(x)
+
 		#Block1
 		x = F.relu(self.conv1(x))
 		x = F.relu(self.conv2(x))
 		x = self.max1(x)
+		if self.dropout:
+			x = self.dropout_block(x)
+
 		#Block2
 		x = F.relu(self.conv3(x))
 		x = F.relu(self.conv4(x))
 		x = self.max2(x)
+		if self.dropout:
+			x = self.dropout_block(x)
+
 		#Block3
 		x = F.relu(self.conv5(x))
 		#Block4
