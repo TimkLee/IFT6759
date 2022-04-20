@@ -47,7 +47,8 @@ class ModelClass(nn.Module):
 		#add dropout
 		if self.dropout:
 			self.dropout_input = nn.Dropout(p=0.2)
-			self.dropout_block = nn.Dropout(p=0.5)
+			self.dropout_block1 = nn.Dropout(p=0.5)
+			self.dropout_block2 = nn.Dropout(p=0.5)
 
 		#hyper parameters :
 
@@ -79,14 +80,14 @@ class ModelClass(nn.Module):
 		x = F.relu(self.conv2(x))
 		x = self.max1(x)
 		if self.dropout:
-			x = self.dropout_block(x)
+			x = self.dropout_block1(x)
 
 		#Block2
 		x = F.relu(self.conv3(x))
 		x = F.relu(self.conv4(x))
 		x = self.max2(x)
 		if self.dropout:
-			x = self.dropout_block(x)
+			x = self.dropout_block2(x)
 
 		#Block3
 		x = F.relu(self.conv5(x))
