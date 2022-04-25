@@ -1,0 +1,33 @@
+---
+# "super" - supervised learning, "semi" - semi supervised learning, "shot" - few shot learning
+num: 11
+task: "super"
+
+data: "cifar10"
+model: "all_cnn"
+augment: 
+    - "Flip"
+    - "Translation"
+    - "Rotation"
+    - "ContrastBrightness"
+    - "GaussBlur"
+
+aug_strength:
+    - 0.2
+    - 0.2
+    - 0.2
+    - 0.2
+    - 0.2
+
+eval:
+    "Acc"
+       
+batch_size: 256
+learning_rate: 0.01
+epoch: 175
+optimizer: "sgd"
+weight_decay: 0.001
+momentum : 0.9
+seed: 6769
+
+

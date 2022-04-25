@@ -1,0 +1,27 @@
+---
+# "super" - supervised learning, "semi" - semi supervised learning, "shot" - few shot learning
+num: 12
+task: "semi"
+
+data: "cifar10"
+model: "all_cnn"
+augment: 
+    - "Cutout"
+    - "Cutmix"
+
+aug_strength:
+    - 0.2
+    - 0.8
+
+eval:
+    "Acc"
+       
+batch_size: 256
+learning_rate: 0.01
+epoch: 175
+optimizer: "sgd"
+weight_decay: 0.001
+momentum : 0.9
+seed: 6769
+
+
