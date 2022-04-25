@@ -13,7 +13,7 @@ class ModelClass(nn.Module):
 	All CNN model C 
 	ref : https://arxiv.org/pdf/1412.6806.pdf check table 2 (we replace max pooling from table 1 with conv layers with stride=2 to get AllCNN correctly)
 	"""
-	def __init__(self, device, num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, criterion = "CrossEntropyLoss",momentum=0,dropout=True):
+	def __init__(self, device, num_classes=10,optimizer = "adam", lr=0.003, weight_decay = 0.01, criterion = "CrossEntropyLoss",momentum=0,dropout=False):
 		super(ModelClass, self).__init__()
 		
 		self.num_classes = num_classes
@@ -55,7 +55,7 @@ class ModelClass(nn.Module):
 		if optimizer == "adam":
 			self.optimizer = optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
 		elif optimizer == "sgd":
-			self.optimizer = optim.SGD(self.parameters(), lr=lr, weight_decay=weight_decay,momentum=momentum)
+			self.optimizer = optim.SGD(self.parameters(), lr=lr, weight_decay=weight_decay,momentum=momentum,nesterov=True)
 		else:
 			print("Optimizer not recognized")
 
@@ -105,7 +105,7 @@ class ModelClass(nn.Module):
 	  TRAIN LOOP FOR SUPERVISED/SEMI-SUPERVISED LEARNING
 	  Train the model with the given batched data sample and targets.
 	  """
-	  self.train()
+	  #self.train()
 	  self.optimizer.zero_grad()
 	  y_pred = self.forward(data)
 	  loss = self.criterion(y_pred,target)
