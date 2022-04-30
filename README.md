@@ -17,29 +17,28 @@ General Archetecture:
 `main.py` reads the configuration from the `.yaml` file located in `Config` folder and carries out the instructions.
 The `Data` folder contains code that retrieves the data. The retrieved data are stored in the corresponding subfolder. (Default: Cifar10)
 The `Augmentation` folder contains code for performing data augmentation. The augmented data are saved in the corresponding subfolder. 
-The `Model` folder contains code for generating the desired model structure. The performance parameters are saved in the corresponding text file. (Default: ALL-CNN)
-The `Evaluation` folder contains code for evaluating the model performance. The evaluation parameters/images are saved in the corresponding subfolder.
+The `Model` folder contains code for generating the desired model structure. The performance parameters are saved in the corresponding text file. (Default: Resnet20)
+The evaluation results and models are logged by the corresponding WANDB project.
 
 
-`main.py` --reads--> `.yaml` --store in--> memory
-`main.py` --runs--> `Data` code --download--> data --stores in--> `Data` subfolder
-`main.py` --runs--> `Model` code --get--> Model class --initialize (passing configurations such as optimization, lr, etc.)--> Model
-`main.py` --runs--> `Augmentation` code --creates--> augmented data --store in--> `Augmentation` folder
-`main.py` --calls train and provides data and augmented data to--> Model --creates--> trained model
-`main.py` --calls evalute and provides validate or test data--> Model --predicts--> label
-`main.py` --runs--> `Evaluation` code --reads--> performance parameter --produces--> evaluation parameters/images --store in--> `Evaluation` folder 
+`Colab.ipynb` --reads--> `.yaml` --store in--> memory
+`Colab.ipynb` --runs--> `Data` code --download--> data --stores in--> `Data` subfolder
+`Colab.ipynb` --runs--> `Model` code --get--> Model class --initialize (passing configurations such as optimization, lr, etc.)--> Model
+`Colab.ipynb` --runs--> `Augmentation` code --creates--> augmented data 
+`Colab.ipynb` --calls train and provides data and augmented data to--> Model --creates--> trained model
+`Colab.ipynb` --calls evalute and provides validate or test data--> Model --predicts--> label
+`Colab.ipynb` --uploads--> results and parameters --to--> WANDB 
 
 
-`main.py` --uses--> function `Data_Load` --in--> `Data` code
-`main.py` --uses--> function `Aug` --in--> `Augmentation` code
-`main.py` --uses--> class `ModelClass` --in--> `Model` code
-`main.py` --uses--> function `Eval` --in--> `Evaluation` code
+`Colab.ipynb` --uses--> function `Data_Load` --in--> `Data` code
+`Colab.ipynb` --uses--> function `Aug` --in--> `Augmentation` code
+`Colab.ipynb` --uses--> class `ModelClass` --in--> `Model` code
+
 
 
 All images will be in [Batch size, Channel, Height, Width] format.
 
 
-To run `main.py, e.g. python main.py -c Example.yaml -d cpu
 
 
 #`Data` Code
@@ -65,6 +64,7 @@ Args:
 Returns:
 	- aug_data [Tensor]: output images with a size of [4*Batch size, Channel, Height, Width], where the first [Batch size, Channel, Height, Width] is the original data   
     - aug_label [Tensor]: Updated label class/target of the corresponding data. Equals to input `labels` for methods that do not change the label class/target
+
 
 #`Model` Code   
 Class `ModelClass` contians
